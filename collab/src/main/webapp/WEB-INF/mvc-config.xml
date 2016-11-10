@@ -15,6 +15,10 @@
     <context:component-scan base-package="com.limado.collab.mvc"/>
     <mvc:default-servlet-handler/>
 
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="basename"><value>spring-message</value></property>
+    </bean>
+
     <!--
     <bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
         <property name="exceptionMappings">
