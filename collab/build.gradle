@@ -1,0 +1,160 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+apply plugin: 'war'
+apply from: '../gretty.plugin'
+apply plugin: "jacoco"
+apply plugin: 'findbugs'
+//apply plugin: 'checkstyle'
+
+dependencies {
+    compile group: 'org.springframework', name: 'spring-core', version: '4.3.2.RELEASE'
+    compile group: 'org.springframework', name: 'spring-aop', version: '4.3.2.RELEASE'
+    compile group: 'org.springframework', name: 'spring-aspects', version: '4.3.2.RELEASE'
+    compile group: 'org.springframework', name: 'spring-context', version: '4.3.2.RELEASE'
+    compile group: 'org.springframework', name: 'spring-orm', version: '4.3.2.RELEASE'
+    compile group: 'org.springframework', name: 'spring-webmvc', version: '4.3.2.RELEASE'
+
+
+    compile group: 'org.hibernate', name: 'hibernate-core', version: '5.2.2.Final'
+    compile group: 'org.hibernate.javax.persistence', name: 'hibernate-jpa-2.1-api', version: '1.0.0.Final'
+    runtime group: 'com.mchange', name: 'c3p0', version: '0.9.5.2'
+    runtime group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '1.4.6'
+
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.6.2'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.6.2'
+    compile group: 'com.google.guava', name: 'guava', version: '19.0'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+    compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.2'
+    compile group: 'joda-time', name: 'joda-time', version: '2.9.4'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.8.2'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.8.2'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.8.2'
+    compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version: '2.8.2'
+    compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-xml', version: '2.8.2'
+    compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-hibernate5', version: '2.8.2'
+
+    providedCompile group: 'javax.servlet', name: 'jstl', version: '1.2'
+
+    testCompile group: 'org.springframework', name: 'spring-test', version: '4.3.2.RELEASE'
+    testRuntime group: 'org.hsqldb', name: 'hsqldb', version: '2.3.4'
+    testRuntime group: 'com.jayway.jsonpath', name: 'json-path', version: '2.2.0'
+    testRuntime group: 'org.skyscreamer', name: 'jsonassert', version: '1.4.0'
+}
+
+task deploy(dependsOn:build) << {
+    copy {
+        from 'build/libs/collab.war'
+        into "$webapps_dir"
+    }
+}
+
+Properties props = new Properties()
+props.load(new FileInputStream(rootProject.projectDir.absolutePath + '/gradle.properties'))
+
+processResources {
+    with copySpec {
+        from 'src/main/resources'
+        include '**/*.properties'
+        include '**/*.xml'
+        filter(ReplaceTokens, tokens: props)
+    }
+    exclude 'sql'
+}
+
+processTestResources {
+    with copySpec {
+        from 'src/test/resources'
+        include '**/*.properties'
+        include '**/*.xml'
+        filter(ReplaceTokens, tokens: props)
+    }
+}
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'org.mariadb.jdbc:mariadb-java-client:1.4.6'
+    }
+
+    URLClassLoader loader = groovy.sql.Sql.class.classLoader
+    project.buildscript.configurations.classpath.each { File file ->
+        loader.addURL(file.toURL())
+    }
+}
+
+import groovy.sql.Sql
+
+task createTables << {
+    def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
+    new File('src/main/resources/sql/create.sql').eachLine {
+        sql.execute(it)
+    }
+}
+
+task dropTables << {
+    def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
+    new File('src/main/resources/sql/drop.sql').eachLine {
+        sql.execute(it)
+    }
+}
+
+task createTestTables << {
+    def sql = Sql.newInstance("$test_db_url", "$test_db_user", "$test_db_password", "$test_db_driverClass")
+    new File('src/main/resources/sql/create.sql').eachLine {
+        sql.execute(it)
+    }
+}
+
+task dropTestTables << {
+    def sql = Sql.newInstance("$test_db_url", "$test_db_user", "$test_db_password", "$test_db_driverClass")
+    new File('src/main/resources/sql/drop.sql').eachLine {
+        sql.execute(it)
+    }
+}
+
+test {
+    filter {
+        //includeTestsMatching "com.limado.collab.dao.*"
+        //includeTestsMatching "com.limado.collab.service.*"
+        //includeTestsMatching "com.limado.collab.model.*"
+        //includeTestsMatching "com.limado.collab.util.*"
+        //includeTestsMatching "com.limado.collab.mvc.rest.*"
+    }
+}
+
+tasks.withType(FindBugs) {
+    reports {
+        xml.enabled false
+        html.enabled true
+    }
+    reportLevel = "medium"
+    ignoreFailures = true
+}
+
+// ========== Dev ==========
+/*
+checkstyle {
+    toolVersion = "7.1.1"
+}
+tasks.withType(Checkstyle) {
+    reports {
+        xml.enabled false
+        html.enabled true
+    }
+}
+
+gretty {
+    //http://akhikhl.github.io/gretty-doc/Gretty-configuration.html
+    servletContainer = 'jetty9'
+    httpPort = 80
+    jvmArgs = ['-Xms512M', '-Xmx512M', '-XX:MaxPermSize=128M']
+    realm 'auth'
+    realmConfigFile 'dev/realm.properties'
+    logDir = 'D:/log'
+    redeployMode = 'restart'
+    scanInterval = 1
+}
+*/

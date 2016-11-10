@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright © 2016. Limado Inc. All rights reserved
+  -->
+
+<Configuration status="trace" strict="true" monitorInterval="600">
+    <Filter type="ThresholdFilter" level="debug"/>
+
+    <Appenders>
+        <Appender type="Console" name="STDOUT">
+            <Layout type="PatternLayout" pattern="[%-5p] %c{1}.%M():%L\t - %m%n"/>
+        </Appender>
+        <Appender type="RollingFile" name="File" fileName="@log_dir@/collab.log"
+                  filePattern="@log_dir@/collab-%d{yyyy-MM-dd}.log">
+            <Layout type="PatternLayout" pattern="[%-5p] %d{ISO8601} - %c.%M():%L\t - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy modulate="true" interval="1"/>
+            </Policies>
+        </Appender>
+    </Appenders>
+
+    <Loggers>
+        <!--
+        <Logger name="org.hibernate.SQL" level="debug" additivity="false">
+            <AppenderRef ref="STDOUT"/>
+            <AppenderRef ref="File"/>
+        </Logger>
+        -->
+        <Logger name="com.limado.collab" level="debug" additivity="false">
+            <AppenderRef ref="STDOUT"/>
+            <AppenderRef ref="File"/>
+        </Logger>
+
+        <Root level="error">
+            <AppenderRef ref="STDOUT"/>
+            <AppenderRef ref="File"/>
+        </Root>
+    </Loggers>
+</Configuration>

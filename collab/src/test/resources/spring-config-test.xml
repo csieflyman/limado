@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!--
+  ~ Copyright © 2016. Limado Inc. All rights reserved
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
+
+    <!-- MySQL -->
+<!--
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+        <property name="driverClass" value="@test_db_driverClass@" />
+        <property name="jdbcUrl" value="@test_db_url@" />
+        <property name="user" value="@test_db_user@" />
+        <property name="password" value="@test_db_password@" />
+        <property name="maxPoolSize" value="10" />
+        <property name="minPoolSize" value="5" />
+        <property name="acquireIncrement" value="1" />
+        <property name="maxIdleTime" value="25200" />
+        <property name="maxIdleTimeExcessConnections" value="1200" />
+    </bean>
+-->
+
+    <!-- HSQLDB -->
+
+    <jdbc:embedded-database id="test" type="HSQL">
+        <jdbc:script location="classpath:sql/hsql-create.sql" />
+    </jdbc:embedded-database>
+
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+        <property name="driverClass" value="org.hsqldb.jdbcDrive" />
+        <property name="jdbcUrl" value="jdbc:hsqldb:mem:test;shutdown=false" />
+        <property name="user" value="sa" />
+        <property name="password" value="" />
+    </bean>
+
+</beans>
