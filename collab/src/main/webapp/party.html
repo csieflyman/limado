@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright © 2016. Limado Inc. All rights reserved
+  -->
+
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width">
+    <title>Party</title>
+    <link rel="stylesheet" type="text/css" href="css/party.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.2.0/css/select.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="css/jquery-ui/jquery-ui.structure.min.css">
+    <link rel="stylesheet" type="text/css" href="css/jquery-ui/jquery-ui.theme.min.css">
+    <script src="js/jquery-3.1.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/select/1.2.0/js/dataTables.select.min.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
+    <script src="js/party.js"></script>
+</head>
+<body>
+<div id="container">
+    <div id="header">
+        <span>Party Demo</span>
+    </div>
+    <div id="content" class="clearfix">
+        <div id="sidenav">
+            <ul>
+                <li><a target="_top" href="party.html">Manage Party</a></li>
+                <li><a target="_top" href="orgTree.html">Organization Tree</a></li>
+                <li><a target="_top" href="groupDag.html">Group Dag</a></li>
+            </ul>
+        </div>
+
+        <div id="main">
+            <div id="search">
+                <form id="search_form" method="get" action="#">
+                    <fieldset>
+                        <legend>Search</legend>
+                        <table id="search_table">
+                            <tr>
+                                <td>Identity</td>
+                                <td><input type="text" id="search_identity" name="search_identity"/></td>
+                            </tr>
+                            <tr>
+                                <td>Name</td>
+                                <td><input type="text" id="search_name" name="search_name"/></td>
+                            </tr>
+                            <tr>
+                                <td>Type</td>
+                                <td>
+                                    <input type="checkbox" id="search_type_user" name="search_type" value="User"/>
+                                    <label for="search_type_user">User</label>
+                                    <input type="checkbox" id="search_type_org" name="search_type" value="Organization"/>
+                                    <label for="search_type_org">Organization</label>
+                                    <input type="checkbox" id="search_type_group" name="search_type" value="Group"/>
+                                    <label for="search_type_group">Group</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Enabled</td>
+                                <td>
+                                    <input type="radio" id="search_enabled_all" name="search_enabled" value="" checked/>
+                                    <label for="search_enabled_all">All</label>
+                                    <input type="radio" id="search_enabled_true" name="search_enabled" value="true"/>
+                                    <label for="search_enabled_true">Enabled</label>
+                                    <input type="radio" id="search_enabled_false" name="search_enabled" value="false"/>
+                                    <label for="search_enabled_false">Disabled</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td>
+                                    <input type="reset" name="reset" class="btn btn-reset" value="Reset"/>
+                                    <input type="submit" name="search" class="btn btn-submit" value="Search">
+                                </td>
+                            </tr>
+                        </table>
+                    </fieldset>
+                </form>
+            </div>
+            <div id="action" class="clearfix">
+                <div id="action_selected">
+                    <fieldset>
+                        <legend>Selected Action</legend>
+                        <input type="button" id="enable" class="btn" value="Enable"/>
+                        <input type="button" id="disable" class="btn" value="Disable"/>
+                        <input type="button" id="delete" class="btn" value="Delete"/>
+                    </fieldset>
+                </div>
+                <div id="action_create">
+                    <a href="#" id="action_create_link" class="more">Create</a>
+                    <div id="action_create_dropdown">
+                        <a href="#" id="create_user">Create User</a>
+                        <a href="#" id="create_org">Create Organization</a>
+                        <a href="#" id="create_group">Create Group</a>
+                    </div>
+                </div>
+            </div>
+            <div id="party_form_dialog">
+                <p class="validateTips">All form fields are required.</p>
+                <form id="party_form">
+                    <fieldset>
+                        <label for="identity">Identity</label>
+                        <input type="text" name="identity" id="identity" value="" class="text ui-widget-content ui-corner-all">
+                        <label for="name">Name</label>
+                        <input type="text" name="name" id="name" value="" class="text ui-widget-content ui-corner-all">
+                        <label for="email">Email</label>
+                        <input type="text" name="email" id="email" value="" class="text ui-widget-content ui-corner-all">
+                        <label for="enabled">Enabled</label>
+                        <input type="checkbox" name="enabled" id="enabled" value="true" checked>
+
+                        <!-- Allow form submission with keyboard without duplicating the dialog button -->
+                        <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+                    </fieldset>
+                </form>
+            </div>
+            <div id="party">
+                <table id="party_table">
+                    <thead>
+                    <tr>
+                        <th><input id="select_all" value="1" type="checkbox"></th>
+                        <th>id</th>
+                        <th>identity</th>
+                        <th>name</th>
+                        <th>type</th>
+                        <th>enabled</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td></td>
+                        <td>id</td>
+                        <td>identity</td>
+                        <td>name</td>
+                        <td>type</td>
+                        <td>enabled</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div id="footer">
+        <p><small>Copyright&copy; Limado All Rights Reserved.</small></p>
+    </div>
+</div>
+</body>
+</html>
