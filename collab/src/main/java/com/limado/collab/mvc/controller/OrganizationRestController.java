@@ -27,7 +27,7 @@ import java.util.UUID;
  * author flyman
  */
 @RestController
-@RequestMapping("/api/v1/orgs")
+@RequestMapping("/api/v1/organizations")
 public class OrganizationRestController {
 
     private static final Logger log = LogManager.getLogger(OrganizationRestController.class);
