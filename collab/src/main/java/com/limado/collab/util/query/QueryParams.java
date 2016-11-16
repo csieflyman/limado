@@ -106,11 +106,11 @@ public class QueryParams {
             return Collections.emptyList();
 
         Preconditions.checkArgument(s.startsWith("[") && s.endsWith("]"), "invalid q_predicate format: " + s);
-        s = s.substring(1, s.length() -1);
+        s = s.substring(1, s.length() -1).trim();
         List<String> predicateStrings = Lists.newArrayList(Splitter.on(";").split(s));
         List<Predicate> predicates;
         try {
-            predicates = predicateStrings.stream().map(ps -> ps.trim()).map(ps -> Lists.newArrayList(Splitter.on(" ").split(ps)))
+            predicates = predicateStrings.stream().map(ps -> ps.trim()).filter(ps -> StringUtils.isNotEmpty(ps)).map(ps -> Lists.newArrayList(Splitter.on(" ").split(ps)))
                     .map(psList -> new Predicate(psList.get(0), Operator.exprValueOf(psList.get(1)), psList.get(2))).collect(Collectors.toList());
         }catch (Throwable e) {
             throw new IllegalArgumentException("invalid q_predicate format: " + s, e);
