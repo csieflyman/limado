@@ -99,18 +99,21 @@ $(function () {
             partyFormDialog.dialog("option", "partyType", 'user');
             partyFormDialog.dialog("option", "action", "create");
             partyFormDialog.dialog("option", "title", "Create User");
+            initPartyRelationTable('user', [], []);
             partyFormDialog.dialog("open");
         });
         $( "#create_org" ).on( "click", function() {
             partyFormDialog.dialog("option", "partyType", 'organization');
             partyFormDialog.dialog("option", "action", "create");
             partyFormDialog.dialog("option", "title", "Create Organization");
+            initPartyRelationTable('organization', [], []);
             partyFormDialog.dialog("open");
         });
         $( "#create_group" ).on( "click", function() {
             partyFormDialog.dialog("option", "partyType", 'group');
             partyFormDialog.dialog("option", "action", "create");
             partyFormDialog.dialog("option", "title", "Create Group");
+            initPartyRelationTable('group', [], []);
             partyFormDialog.dialog("open");
         });
 
@@ -133,95 +136,100 @@ $(function () {
                     name.val(party.name);
                     email.val(party.email);
                     enabled.prop('checked', party.enabled === true);
-
-                    parentsTable.clear();
-                    childrenTable.clear();
-                    parentsTable.rows.add(party.parents).draw(false);
-                    childrenTable.rows.add(party.children).draw(false);
-
-                    $("#parents_identity").autocomplete(buildAutoCompleteOption(true));
-                    $("#children_identity").autocomplete(buildAutoCompleteOption(false));
-                    if(party.type === 'user') {
-                        $("#children_auto_complete").hide();
-                    }
-
+                    initPartyRelationTable(party.type, party.parents, party.children);
                     partyFormDialog.dialog("open");
-
-                    function buildAutoCompleteOption(isParent) {
-                        return {
-                            source: function(request, autoCompleteResponse){
-                                $.ajax({
-                                    url:'api/v1/parties?q_fetchProperties=id,identity,name,type&q_predicates=[identity like ' + request.term + '%25 ; '
-                                        + (isParent ? buildParentsTypeQueryPredicate(party.type) : buildChildrenTypeQueryPredicate(party.type)) + ']',
-                                    type: 'GET',
-                                    dataType: 'json',
-                                    success: function(response) {
-                                        var autoCompleteData = response.map(function(party) {
-                                            return {
-                                                value: party.identity + '<' + party.name + '>@' + party.type,
-                                                party: party
-                                            }
-                                        });
-                                        autoCompleteResponse(autoCompleteData);
-                                    },
-                                    error: function(xhr) {
-                                        autoCompleteResponse([]);
-                                        alert("fetch party failure: " + xhr.responseText);
-                                    }
-                                });
-                            },
-                            minLength: 2,
-                            select: function(event, ui) {
-                                var rowData = {
-                                    id: ui.item.party.id,
-                                    identity: ui.item.party.identity,
-                                    name: ui.item.party.name,
-                                    type: ui.item.party.type
-                                };
-                                if (isParent) {
-                                    parentsTable.row.add(rowData).draw(false);
-                                }
-                                else {
-                                    childrenTable.row.add(rowData).draw(false);
-                                }
-                                $(this).val('');
-                                return false;
-                            }
-                        };
-                    }
-
-                    function buildChildrenTypeQueryPredicate(partyType) {
-                        if(partyType === 'group') {
-                            return 'TYPE(party) IN (User,Organization,Group)';
-                        }
-                        else if(partyType === 'organization') {
-                            return 'TYPE(party) IN (User,Organization)';
-                        }
-                        else {
-                            throw new Error('invalid party type ' + partyType);
-                        }
-                    }
-
-                    function buildParentsTypeQueryPredicate(partyType) {
-                        if (partyType == 'user') {
-                            return 'TYPE(party) IN (Organization,Group)';
-                        }
-                        else if(partyType === 'group') {
-                            return 'TYPE(party) = \'Group\'';
-                        }
-                        else if(partyType === 'organization') {
-                            return 'TYPE(party) = Organization';
-                        }
-                        else {
-                            throw new Error('invalid party type ' + partyType);
-                        }
-                    }
                 },
                 error: function(xhr) {
                     alert("fetch party failure: " + xhr.responseText);
                 }
             });
         });
+
+        function initPartyRelationTable(partyType, parents, children) {
+            parentsTable.clear();
+            childrenTable.clear();
+            parentsTable.rows.add(parents).draw(false);
+            childrenTable.rows.add(children).draw(false);
+
+            $("#parents_identity").autocomplete(buildAutoCompleteOption(true));
+            $("#children_identity").autocomplete(buildAutoCompleteOption(false));
+            if(partyType === 'user') {
+                $("#children_auto_complete").hide();
+            }
+            else {
+                $("#children_auto_complete").show();
+            }
+
+            function buildAutoCompleteOption(isParent) {
+                return {
+                    source: function(request, autoCompleteResponse){
+                        $.ajax({
+                            url:'api/v1/parties?q_fetchProperties=id,identity,name,type&q_predicates=[identity like ' + request.term + '%25 ; '
+                            + (isParent ? buildParentsTypeQueryPredicate(partyType) : buildChildrenTypeQueryPredicate(partyType)) + ']',
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function(response) {
+                                var autoCompleteData = response.map(function(party) {
+                                    return {
+                                        value: party.identity + '<' + party.name + '>@' + party.type,
+                                        party: party
+                                    }
+                                });
+                                autoCompleteResponse(autoCompleteData);
+                            },
+                            error: function(xhr) {
+                                autoCompleteResponse([]);
+                                alert("fetch party failure: " + xhr.responseText);
+                            }
+                        });
+                    },
+                    minLength: 2,
+                    select: function(event, ui) {
+                        var rowData = {
+                            id: ui.item.party.id,
+                            identity: ui.item.party.identity,
+                            name: ui.item.party.name,
+                            type: ui.item.party.type
+                        };
+                        if (isParent) {
+                            parentsTable.row.add(rowData).draw(false);
+                        }
+                        else {
+                            childrenTable.row.add(rowData).draw(false);
+                        }
+                        $(this).val('');
+                        return false;
+                    }
+                };
+            }
+
+            function buildChildrenTypeQueryPredicate(partyType) {
+                if(partyType === 'group') {
+                    return 'TYPE(party) IN (User,Organization,Group)';
+                }
+                else if(partyType === 'organization') {
+                    return 'TYPE(party) IN (User,Organization)';
+                }
+                else {
+                    throw new Error('invalid party type ' + partyType);
+                }
+            }
+
+            function buildParentsTypeQueryPredicate(partyType) {
+                if (partyType == 'user') {
+                    return 'TYPE(party) IN (Organization,Group)';
+                }
+                else if(partyType === 'group') {
+                    return 'TYPE(party) = \'Group\'';
+                }
+                else if(partyType === 'organization') {
+                    return 'TYPE(party) = Organization';
+                }
+                else {
+                    throw new Error('invalid party type ' + partyType);
+                }
+            }
+        }
 
         function updateTips( t ) {
             tips.text( t ).addClass( "ui-state-highlight" );
@@ -273,7 +281,9 @@ $(function () {
                     type: partyType,
                     name: name.val(),
                     email: email.val(),
-                    enabled: enabled.is(':checked')
+                    enabled: enabled.is(':checked'),
+                    parents: parentsTable.data().toArray(),
+                    children: childrenTable.data().toArray()
                 };
 
                 if(action === 'create') {
@@ -294,8 +304,6 @@ $(function () {
                 }
                 else {
                     party.id = partyFormDialog.dialog("option", "party").id;
-                    party.parents = parentsTable.data().toArray();
-                    party.children = childrenTable.data().toArray();
                     $.ajax({
                         url:'api/v1/' + partyType + 's',
                         type:"PUT",
