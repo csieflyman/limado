@@ -41,10 +41,22 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         if(checkExist(party.getType(), party.getIdentity())) {
             throw new IllegalArgumentException(String.format("identity %s must be unique of the type %s", party.getIdentity(), party.getType()));
         }
-        // no cascade for transient instance
+
+        Set<Party> parents = party.getParents();
+        Set<Party> children = party.getChildren();
         party.setParents(null);
         party.setChildren(null);
-        return (T) partyDao.create(party);
+        T newParty = (T) partyDao.create(party);
+
+        if(parents != null) {
+            parents.forEach(parent -> addChild(parent.getId(), newParty.getId()));
+        }
+        if(children != null) {
+            children.forEach(child -> addChild(newParty.getId(), child.getId()));
+        }
+        newParty.setParents(parents);
+        newParty.setChildren(children);
+        return newParty;
     }
 
     @Override
@@ -65,14 +77,8 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         else {
             Collection<Party> addChildren = CollectionUtils.subtract(party.getChildren(), persistentParty.getChildren());
             Collection<Party> removeChildren = CollectionUtils.subtract(persistentParty.getChildren(), party.getChildren());
-
-            addChildren.forEach(child -> {
-                Preconditions.checkArgument(child.getId() != null, String.format("child %s id must not be null", child));
-                Party persistentChild = getById(child.getId(), Party.RELATION_PARENT);
-                addChild(persistentParty, persistentChild);
-            });
-
-            removeChildren.forEach(persistentChild -> removeChild(persistentParty, persistentChild));
+            addChildren.forEach(child -> addChild(party.getId(), child.getId()));
+            removeChildren.forEach(child -> removeChild(party.getId(), child.getId()));
         }
 
         if(party.getParents() == null) {
@@ -81,14 +87,8 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         else {
             Collection<Party> addParents = CollectionUtils.subtract(party.getParents(), persistentParty.getParents());
             Collection<Party> removeParents = CollectionUtils.subtract(persistentParty.getParents(), party.getParents());
-
-            addParents.forEach(parent -> {
-                Preconditions.checkArgument(parent.getId() != null, String.format("parent %s id must not be null", parent));
-                Party persistentParent = getById(parent.getId(), Party.RELATION_CHILDREN);
-                addChild(persistentParent, persistentParty);
-            });
-
-            removeParents.forEach(persistentParent -> removeChild(persistentParent, persistentParty));
+            addParents.forEach(parent -> addChild(parent.getId(), party.getId()));
+            removeParents.forEach(parent -> removeChild(parent.getId(), party.getId()));
         }
 
         partyDao.update(party);

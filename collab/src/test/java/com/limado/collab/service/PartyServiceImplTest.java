@@ -25,6 +25,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractTransactionalJUnit4SpringContextTests;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,6 +43,9 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
     private Map<String, Party> userMap;
     private Map<String, Party> orgMap;
     private Map<String, Party> groupMap;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     @Qualifier("partyService")
@@ -93,10 +98,28 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
         partyService.update(user);
         user = partyService.getById(user.getId());
         Assert.assertEquals("user1 modified", user.getName());
-        
+
         // delete
         partyService.deleteById(user.getId());
         Assert.assertFalse(partyService.checkExist(user.getType(), user.getIdentity()));
+    }
+
+    @Test
+    public void createWithRelations() {
+        Party org1 = orgMap.get("org1");
+        Party org2 = orgMap.get("org2");
+        Party user1 = userMap.get("user1");
+
+        org1 = partyService.create(org1);
+        user1 = partyService.create(user1);
+        entityManager.flush();
+        org2.setParents(Sets.newHashSet(org1));
+        org2.setChildren(Sets.newHashSet(user1));
+        org2 = partyService.create(org2);
+
+        Assert.assertNotNull(org2.getId());
+        Assert.assertEquals(Sets.newHashSet(org1), partyService.getParents(org2.getId()));
+        Assert.assertEquals(Sets.newHashSet(user1), partyService.getChildren(org2.getId()));
     }
 
     @Test(expected=IllegalArgumentException.class)
