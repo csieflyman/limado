@@ -55,7 +55,7 @@ public class PartyRestControllerTest {
     private static Map<String, Class> typeClassMap = new HashMap<>();
     static {
         typePathMap.put(User.TYPE, "users");
-        typePathMap.put(Organization.TYPE, "orgs");
+        typePathMap.put(Organization.TYPE, "organizations");
         typePathMap.put(Group.TYPE, "groups");
 
         typeClassMap.put(User.TYPE, User.class);
@@ -167,7 +167,7 @@ public class PartyRestControllerTest {
         org1.setParents(Sets.newHashSet(group1));
         org1.setName("org1 modified");
         String jsonObject = JsonConverter.getInstance().convertOut(org1);
-        mockMvc.perform(put(API_PATH + "/orgs").contentType(MediaType.APPLICATION_JSON_UTF8_VALUE).content(jsonObject))
+        mockMvc.perform(put(API_PATH + "/organizations").contentType(MediaType.APPLICATION_JSON_UTF8_VALUE).content(jsonObject))
                 .andExpect(status().isOk());
 
         // getById with parameters
