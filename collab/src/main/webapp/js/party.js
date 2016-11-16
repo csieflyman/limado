@@ -5,19 +5,21 @@ $(function () {
         select_all_page_checked = [];
 
     function initPartyForm() {
-        var partyFormDialog, partyForm = $('#party_form'),
+        var partyFormDialog, partyForm = $('#party_form'), parentsTable, childrenTable,
             // From http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#e-mail-state-%28type=email%29
             emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
             identity = $( "#identity" ),
             name = $( "#name" ),
             email = $( "#email" ),
-            enabled = $('input[name=enabled]'),
+            enabled = $('#enabled'),
             allFields = $( [] ).add(identity).add( name ).add( email ).add(enabled),
             tips = $( ".validateTips" );
 
         partyFormDialog = $( "#party_form_dialog" ).dialog({
             autoOpen: false,
             modal: true,
+            height: 800,
+            width: 600,
             buttons: {
                 "Confirm": createOrUpdateParty,
                 Cancel: function() {
@@ -31,8 +33,66 @@ $(function () {
         });
 
         partyForm.on( "submit", function( event ) {
-            event.preventDefault();
             createOrUpdateParty();
+            event.preventDefault();
+        });
+
+        parentsTable = $('#parents_table').DataTable({
+            searching: false,
+            paging: false,
+            info: false,
+            data: [],
+            columns: [
+                {
+                    data: "id",
+                    visible: false
+                },
+                {data: "identity"},
+                {data: "name"},
+                {data: "type"},
+                {
+                    searchable: false,
+                    orderable: false,
+                    width:'1%',
+                    'render': function (){
+                        return '<input type=\"button\" name=\"remove\" value=\"Remove\"/>';
+                    }
+                }
+            ],
+            order: [[1, 'asc']]
+        });
+
+        parentsTable.on( "click", "input[type=button]", function() {
+            parentsTable.row($(this).parents('tr')).remove().draw(false);
+        });
+
+        childrenTable = $('#children_table').DataTable({
+            searching: false,
+            paging: false,
+            info: false,
+            data: [],
+            columns: [
+                {
+                    data: "id",
+                    visible: false
+                },
+                { data: "identity"},
+                { data: "name" },
+                { data: "type" },
+                {
+                    searchable: false,
+                    orderable: false,
+                    width:'1%',
+                    'render': function (){
+                        return '<input type=\"button\" name=\"remove\" value=\"Remove\"/>';
+                    }
+                }
+            ],
+            order: [[ 1, 'asc' ]]
+        });
+
+        childrenTable.on( "click", "input[type=button]", function() {
+            childrenTable.row($(this).parents('tr')).remove().draw(false);
         });
 
         $( "#create_user" ).on( "click", function() {
@@ -54,13 +114,16 @@ $(function () {
             partyFormDialog.dialog("open");
         });
 
-        $( "#party_table tbody" ).on( "click", "tr", function() {
-            var partyId = dataTable.row( this ).data().id;
-            var options = {
-                url:'api/v1/parties/' + partyId + '?q_fetchProperties=id,identity,name,type,enabled,email&q_fetchRelations=parents,children',
+        $( "#party_table tbody" ).on( "click", "tr", function(event) {
+            if($(event.target).hasClass('select-checkbox')) {
+                return;
+            }
+
+            $.ajax({
+                url:'api/v1/parties/' + dataTable.row( this ).data().id + '?q_fetchProperties=id,identity,name,type,enabled,email,parents,children&q_fetchRelations=parents,children',
                 type:"GET",
                 dataType:'json',
-                success: function(response, status) {
+                success: function(response) {
                     var party = response;
                     partyFormDialog.dialog("option", "party", party);
                     partyFormDialog.dialog("option", "partyType", party.type);
@@ -70,13 +133,94 @@ $(function () {
                     name.val(party.name);
                     email.val(party.email);
                     enabled.prop('checked', party.enabled === true);
-                    partyFormDialog.dialog( "open" );
+
+                    parentsTable.clear();
+                    childrenTable.clear();
+                    parentsTable.rows.add(party.parents).draw(false);
+                    childrenTable.rows.add(party.children).draw(false);
+
+                    $("#parents_identity").autocomplete(buildAutoCompleteOption(true));
+                    $("#children_identity").autocomplete(buildAutoCompleteOption(false));
+                    if(party.type === 'user') {
+                        $("#children_auto_complete").hide();
+                    }
+
+                    partyFormDialog.dialog("open");
+
+                    function buildAutoCompleteOption(isParent) {
+                        return {
+                            source: function(request, autoCompleteResponse){
+                                $.ajax({
+                                    url:'api/v1/parties?q_fetchProperties=id,identity,name,type&q_predicates=[identity like ' + request.term + '%25 ; '
+                                        + (isParent ? buildParentsTypeQueryPredicate(party.type) : buildChildrenTypeQueryPredicate(party.type)) + ']',
+                                    type: 'GET',
+                                    dataType: 'json',
+                                    success: function(response) {
+                                        var autoCompleteData = response.map(function(party) {
+                                            return {
+                                                value: party.identity + '<' + party.name + '>@' + party.type,
+                                                party: party
+                                            }
+                                        });
+                                        autoCompleteResponse(autoCompleteData);
+                                    },
+                                    error: function(xhr) {
+                                        autoCompleteResponse([]);
+                                        alert("fetch party failure: " + xhr.responseText);
+                                    }
+                                });
+                            },
+                            minLength: 2,
+                            select: function(event, ui) {
+                                var rowData = {
+                                    id: ui.item.party.id,
+                                    identity: ui.item.party.identity,
+                                    name: ui.item.party.name,
+                                    type: ui.item.party.type
+                                };
+                                if (isParent) {
+                                    parentsTable.row.add(rowData).draw(false);
+                                }
+                                else {
+                                    childrenTable.row.add(rowData).draw(false);
+                                }
+                                $(this).val('');
+                                return false;
+                            }
+                        };
+                    }
+
+                    function buildChildrenTypeQueryPredicate(partyType) {
+                        if(partyType === 'group') {
+                            return 'TYPE(party) IN (User,Organization,Group)';
+                        }
+                        else if(partyType === 'organization') {
+                            return 'TYPE(party) IN (User,Organization)';
+                        }
+                        else {
+                            throw new Error('invalid party type ' + partyType);
+                        }
+                    }
+
+                    function buildParentsTypeQueryPredicate(partyType) {
+                        if (partyType == 'user') {
+                            return 'TYPE(party) IN (Organization,Group)';
+                        }
+                        else if(partyType === 'group') {
+                            return 'TYPE(party) = \'Group\'';
+                        }
+                        else if(partyType === 'organization') {
+                            return 'TYPE(party) = Organization';
+                        }
+                        else {
+                            throw new Error('invalid party type ' + partyType);
+                        }
+                    }
                 },
-                error: function(xhr, status, ex) {
+                error: function(xhr) {
                     alert("fetch party failure: " + xhr.responseText);
                 }
-            }
-            $.ajax(options);
+            });
         });
 
         function updateTips( t ) {
@@ -130,42 +274,41 @@ $(function () {
                     name: name.val(),
                     email: email.val(),
                     enabled: enabled.is(':checked')
-                }
+                };
 
                 if(action === 'create') {
-                    var options = {
+                    $.ajax({
                         url:'api/v1/' + partyType + 's',
                         type:"POST",
                         data:JSON.stringify(party),
                         dataType:'json',
                         contentType:"application/json",
-                        success: function(response, status) {
+                        success: function() {
                             partyFormDialog.dialog( "close" );
                             reloadData();
                         },
-                        error: function(xhr, status, ex) {
+                        error: function(xhr) {
                             alert("create party failure: " + xhr.responseText);
                         }
-                    }
-                    $.ajax(options);
+                    });
                 }
                 else {
-                    var oldParty = partyFormDialog.dialog("option", "party");
-                    party.id = oldParty.id;
-                    var options = {
+                    party.id = partyFormDialog.dialog("option", "party").id;
+                    party.parents = parentsTable.data().toArray();
+                    party.children = childrenTable.data().toArray();
+                    $.ajax({
                         url:'api/v1/' + partyType + 's',
                         type:"PUT",
                         data:JSON.stringify(party),
                         contentType:"application/json",
-                        success: function(response, status) {
+                        success: function() {
                             partyFormDialog.dialog( "close" );
                             reloadData();
                         },
-                        error: function(xhr, status, ex) {
+                        error: function(xhr) {
                             alert("update party failure: " + xhr.responseText);
                         }
-                    }
-                    $.ajax(options);
+                    });
                 }
             }
             return valid;
@@ -177,10 +320,10 @@ $(function () {
         dataTable = $('#party_table').DataTable({
             searching: false,
             ajax: {
-                 url: defaultQueryUrl,
-                 type: 'GET',
-                 dataSrc: "",
-                 beforeSend: function (request) {
+                url: defaultQueryUrl,
+                type: 'GET',
+                dataSrc: "",
+                beforeSend: function (request) {
                     request.setRequestHeader("Accept", "application/json");
                 }
             },
@@ -190,7 +333,7 @@ $(function () {
                     orderable: false,
                     className: 'select-checkbox',
                     width:'1%',
-                    'render': function (data, type, full, meta){
+                    'render': function (){
                         return '';
                     }
                 },
@@ -211,7 +354,7 @@ $(function () {
         });
 
         function initSelectAll() {
-            select_all.on('click', function(e){
+            select_all.click(function(){
                 if(this.checked) {
                     dataTable.rows({page: 'current'}).select();
                     select_all_page_checked[dataTable.page()] = true;
@@ -220,7 +363,6 @@ $(function () {
                     dataTable.rows({page: 'current'}).deselect();
                     select_all_page_checked[dataTable.page()] = false;
                 }
-                e.stopPropagation();
             });
 
             dataTable.on( 'page.dt', function () {
@@ -239,10 +381,10 @@ $(function () {
                 type:"DELETE",
                 data: JSON.stringify(getSelectedRowsId()),
                 contentType:"application/json",
-                success: function(response, status) {
+                success: function() {
                     reloadData();
                 },
-                error: function(xhr, status, ex) {
+                error: function(xhr) {
                     alert("delete party failure: " + xhr.responseText);
                 }
             });
@@ -253,10 +395,10 @@ $(function () {
                 type:"PUT",
                 data: JSON.stringify(getSelectedRowsId()),
                 contentType:"application/json",
-                success: function(response, status) {
+                success: function() {
                     reloadData();
                 },
-                error: function(xhr, status, ex) {
+                error: function(xhr) {
                     alert("enable party failure: " + xhr.responseText);
                 }
             });
@@ -267,10 +409,10 @@ $(function () {
                 type:"PUT",
                 data: JSON.stringify(getSelectedRowsId()),
                 contentType:"application/json",
-                success: function(response, status) {
+                success: function() {
                     reloadData();
                 },
-                error: function(xhr, status, ex) {
+                error: function(xhr) {
                     alert("disable party failure: " + xhr.responseText);
                 }
             });
@@ -280,8 +422,7 @@ $(function () {
             var ids = dataTable.rows('.selected').data().map(function(data) {
                 return '"' + data.id + '"';
             }).join(',');
-            var idArray = JSON.parse("[" + ids + "]");
-            return idArray;
+            return JSON.parse("[" + ids + "]");
         }
     }
     initSelectAction();

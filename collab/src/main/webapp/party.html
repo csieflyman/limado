@@ -116,9 +116,65 @@
                         <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
                     </fieldset>
                 </form>
+                <div id="party_relations">
+                    <div id="party_parents">
+                        <table id="parents_table" class="dataTable">
+                            <caption>Parents</caption>
+                            <thead>
+                            <tr>
+                                <th>id</th>
+                                <th>identity</th>
+                                <th>name</th>
+                                <th>type</th>
+                                <th>action</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>id</td>
+                                <td>identity</td>
+                                <td>name</td>
+                                <td>type</td>
+                                <td></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <div id="parents_auto_complete">
+                            <label for="parents_identity">Add Parents: </label>
+                            <input id="parents_identity">
+                        </div>
+                    </div>
+                    <div id="party_children">
+                        <table id="children_table" class="dataTable">
+                            <caption>Children</caption>
+                            <thead>
+                            <tr>
+                                <th>id</th>
+                                <th>identity</th>
+                                <th>name</th>
+                                <th>type</th>
+                                <th>action</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>id</td>
+                                <td>identity</td>
+                                <td>name</td>
+                                <td>type</td>
+                                <td></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <div id="children_auto_complete">
+                            <label for="children_identity">Add Children: </label>
+                            <input id="children_identity">
+                        </div>
+                    </div>
+                </div>
             </div>
             <div id="party">
-                <table id="party_table">
+                <table id="party_table" class="dataTable">
                     <thead>
                     <tr>
                         <th><input id="select_all" value="1" type="checkbox"></th>
