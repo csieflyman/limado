@@ -4,6 +4,8 @@ apply plugin: 'war'
 apply from: '../gretty.plugin'
 apply plugin: "jacoco"
 apply plugin: 'findbugs'
+apply plugin: 'pmd'
+
 //apply plugin: 'checkstyle'
 
 dependencies {
