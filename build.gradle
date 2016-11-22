@@ -29,41 +29,47 @@ ext {
 
 
 // ========== Jetty ==========
-task configureJetty << {
-    if (Os.isFamily(Os.FAMILY_UNIX)) {
-        println 'linux: copy jetty.sh'
-        copy {
-            from 'config/jetty'
-            into "$jetty_home"
-            include 'bin/jetty.sh'
-            filter(ReplaceTokens, tokens:props)
+task configureJetty {
+    doLast {
+        if (Os.isFamily(Os.FAMILY_UNIX)) {
+            println 'linux: copy jetty.sh'
+            copy {
+                from 'config/jetty'
+                into "$jetty_home"
+                include 'bin/jetty.sh'
+                filter(ReplaceTokens, tokens:props)
+            }
         }
-    }
-    else if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        println 'windows: copy jetty.bat'
-        copy {
-            from 'config/jetty'
-            into "$jetty_home"
-            include 'bin/jetty*.bat'
-            filter(ReplaceTokens, tokens:props)
+        else if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            println 'windows: copy jetty.bat'
+            copy {
+                from 'config/jetty'
+                into "$jetty_home"
+                include 'bin/jetty*.bat'
+                filter(ReplaceTokens, tokens:props)
+            }
         }
     }
 }
 
-task configureJettyBase << {
-    copy {
-        from 'config/jetty-base'
-        into "$jetty_base_dir"
-        include '**/*.ini'
-        include '**/*.properties'
-        filter(ReplaceTokens, tokens:props)
+task configureJettyBase {
+    doLast {
+        copy {
+            from 'config/jetty-base'
+            into "$jetty_base_dir"
+            include '**/*.ini'
+            include '**/*.properties'
+            filter(ReplaceTokens, tokens: props)
+        }
     }
 }
 
-task gensslkey << {
-    println "alias: $ssl_alias"
-    println "keystore: $ssl_keystore_path"
-    println "dname: $ssl_dname"
-    delete "$ssl_keystore_path"
-    ant.genkey(alias:"$ssl_alias", keystore:"$ssl_keystore_path", storepass:"$ssl_storepass", dname:"$ssl_dname", validity: '36500', keysize: '2048', keyalg: 'RSA')
+task gensslkey {
+    doLast {
+        println "alias: $ssl_alias"
+        println "keystore: $ssl_keystore_path"
+        println "dname: $ssl_dname"
+        delete "$ssl_keystore_path"
+        ant.genkey(alias: "$ssl_alias", keystore: "$ssl_keystore_path", storepass: "$ssl_storepass", dname: "$ssl_dname", validity: '36500', keysize: '2048', keyalg: 'RSA')
+    }
 }

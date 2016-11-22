@@ -43,10 +43,12 @@ dependencies {
     testRuntime group: 'org.skyscreamer', name: 'jsonassert', version: '1.4.0'
 }
 
-task deploy(dependsOn:build) << {
-    copy {
-        from 'build/libs/collab.war'
-        into "$webapps_dir"
+task deploy(dependsOn:build) {
+    doLast {
+        copy {
+            from 'build/libs/collab.war'
+            into "$webapps_dir"
+        }
     }
 }
 
@@ -89,31 +91,39 @@ buildscript {
 
 import groovy.sql.Sql
 
-task createTables << {
-    def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
-    new File('src/main/resources/sql/create.sql').eachLine {
-        sql.execute(it)
+task createTables {
+    doLast {
+        def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
+        new File('src/main/resources/sql/create.sql').eachLine {
+            sql.execute(it)
+        }
     }
 }
 
-task dropTables << {
-    def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
-    new File('src/main/resources/sql/drop.sql').eachLine {
-        sql.execute(it)
+task dropTables {
+    doLast {
+        def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
+        new File('src/main/resources/sql/drop.sql').eachLine {
+            sql.execute(it)
+        }
     }
 }
 
-task createTestTables << {
-    def sql = Sql.newInstance("$test_db_url", "$test_db_user", "$test_db_password", "$test_db_driverClass")
-    new File('src/main/resources/sql/create.sql').eachLine {
-        sql.execute(it)
+task createTestTables {
+    doLast {
+        def sql = Sql.newInstance("$test_db_url", "$test_db_user", "$test_db_password", "$test_db_driverClass")
+        new File('src/main/resources/sql/create.sql').eachLine {
+            sql.execute(it)
+        }
     }
 }
 
-task dropTestTables << {
-    def sql = Sql.newInstance("$test_db_url", "$test_db_user", "$test_db_password", "$test_db_driverClass")
-    new File('src/main/resources/sql/drop.sql').eachLine {
-        sql.execute(it)
+task dropTestTables {
+    doLast {
+        def sql = Sql.newInstance("$test_db_url", "$test_db_user", "$test_db_password", "$test_db_driverClass")
+        new File('src/main/resources/sql/drop.sql').eachLine {
+            sql.execute(it)
+        }
     }
 }
 
