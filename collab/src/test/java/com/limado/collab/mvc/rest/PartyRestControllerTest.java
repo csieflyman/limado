@@ -197,7 +197,7 @@ public class PartyRestControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(content().json(String.valueOf(size)));
-        ;
+
         mockMvc.perform(get(API_PATH + "/parties")
                 .accept(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .param(QueryParams.Q_PREDICATES, "[id = " + org1.getId() + "]")
