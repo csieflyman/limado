@@ -65,10 +65,8 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         Preconditions.checkArgument(party.getId() != null, "party id must not be null");
 
         Party persistentParty = getById(party.getId(), Party.RELATION_PARENT, Party.RELATION_CHILDREN);
-        if(!party.getIdentity().equals(persistentParty.getIdentity())) {
-            if(checkExist(party.getType(), party.getIdentity())) {
-                throw new IllegalArgumentException(String.format("identity %s must be unique of the type %s", party.getIdentity(), party.getType()));
-            }
+        if(!party.getIdentity().equals(persistentParty.getIdentity()) && checkExist(party.getType(), party.getIdentity())) {
+            throw new IllegalArgumentException(String.format("identity %s must be unique of the type %s", party.getIdentity(), party.getType()));
         }
 
         if(party.getChildren() == null) {
