@@ -139,6 +139,10 @@ tasks.withType(FindBugs) {
     ignoreFailures = true
 }
 
+pmd {
+    ignoreFailures = true
+}
+
 // ========== Dev ==========
 /*
 checkstyle {
