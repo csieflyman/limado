@@ -19,47 +19,15 @@ import java.util.List;
 public interface DagEdgeDao<VertexID extends Serializable>{
     
     public enum EDGE_DIRECTION { INCOMING, OUTGOING, BOTH };
-    
-    /**
-     * Check the existence of edge in the DAG
-     * 
-     * @param startVertex
-     * @param endVertex
-     * @return
-     */
+
     boolean hasEdge(VertexID startVertex, VertexID endVertex);
-   
-    /**
-     * Add edge to the DAG.
-     * 
-     * @param startVertex
-     * @param endVertex
-     * @return
-     */
+
     DagEdge addEdge(VertexID startVertex, VertexID endVertex);
-    
-    /**
-     * Remove edge from DAG.
-     * 
-     * @param startVertex
-     * @param endVertex
-     */
+
     void removeEdge(VertexID startVertex, VertexID endVertex);
-    
-    /**
-     * Remove vertex from DAG.
-     * 
-     * @param vertex
-     */
+
     void removeVertex(VertexID vertex);
-    
-    /**
-     * Finding the vertices
-     * 
-     * @param params
-     * @param edgeDir the direction of vertices expect to return as results
-     * @return
-     */
+
     List<DagVertex> findVertices(QueryParams params, EDGE_DIRECTION edgeDir);
     
 }
