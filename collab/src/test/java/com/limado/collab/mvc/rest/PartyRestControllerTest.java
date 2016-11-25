@@ -165,7 +165,7 @@ public class PartyRestControllerTest {
         org1.setParents(Sets.newHashSet(group1));
         org1.setName("org1 modified");
         String jsonObject = JsonConverter.getInstance().convertOut(org1);
-        mockMvc.perform(put(API_PATH + "/organizations").contentType(MediaType.APPLICATION_JSON_UTF8_VALUE).content(jsonObject))
+        mockMvc.perform(put(API_PATH + "/organizations/" + org1.getId()).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE).content(jsonObject))
                 .andExpect(status().isOk());
 
         // getById with parameters

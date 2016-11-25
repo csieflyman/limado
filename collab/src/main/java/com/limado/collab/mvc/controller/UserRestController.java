@@ -46,9 +46,12 @@ public class UserRestController {
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
-    @PutMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public void update(@RequestBody @Validated UserForm form, BindingResult result) {
+    @PutMapping(value = "{uuidString}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void update(@PathVariable String uuidString, @RequestBody @Validated UserForm form, BindingResult result) {
         log.debug("update userForm: " + form);
+        if(!form.getId().toString().equals(uuidString)) {
+            throw new BadRequestException("invalid uuid.", null, String.format("path uuid %s isn't the same as uuid %s in request body", uuidString, form.getId()));
+        }
         if(result.hasErrors()) {
             log.debug(ValidationUtils.buildErrorMessage(result));
             throw new BadRequestException("invalid user data.", null, ValidationUtils.buildErrorMessage(result));

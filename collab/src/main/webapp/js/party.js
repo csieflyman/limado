@@ -306,7 +306,7 @@ $(function () {
                 else {
                     party.id = partyFormDialog.dialog("option", "party").id;
                     $.ajax({
-                        url:'api/v1/' + partyType + 's',
+                        url:'api/v1/' + partyType + 's/' + party.id,
                         type:"PUT",
                         data:JSON.stringify(party),
                         contentType:"application/json",

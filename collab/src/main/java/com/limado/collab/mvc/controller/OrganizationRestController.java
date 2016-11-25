@@ -47,9 +47,12 @@ public class OrganizationRestController {
         return ResponseEntity.status(HttpStatus.CREATED).body(org);
     }
 
-    @PutMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public void update(@RequestBody @Validated OrganizationForm form, BindingResult result) {
+    @PutMapping(value = "{uuidString}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void update(@PathVariable String uuidString, @RequestBody @Validated OrganizationForm form, BindingResult result) {
         log.debug("update orgForm: " + form);
+        if(!form.getId().toString().equals(uuidString)) {
+            throw new BadRequestException("invalid uuid.", null, String.format("path uuid %s isn't the same as uuid %s in request body", uuidString, form.getId()));
+        }
         if(result.hasErrors()) {
             log.debug(ValidationUtils.buildErrorMessage(result));
             throw new BadRequestException("invalid org data.", null, ValidationUtils.buildErrorMessage(result));

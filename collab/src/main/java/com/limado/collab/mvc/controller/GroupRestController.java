@@ -47,9 +47,12 @@ public class GroupRestController {
         return ResponseEntity.status(HttpStatus.CREATED).body(group);
     }
 
-    @PutMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public void update(@RequestBody @Validated GroupForm form, BindingResult result) {
+    @PutMapping(value = "{uuidString}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void update(@PathVariable String uuidString, @RequestBody @Validated GroupForm form, BindingResult result) {
         log.debug("update groupForm: " + form);
+        if(!form.getId().toString().equals(uuidString)) {
+            throw new BadRequestException("invalid uuid.", null, String.format("path uuid %s isn't the same as uuid %s in request body", uuidString, form.getId()));
+        }
         if(result.hasErrors()) {
             log.debug(ValidationUtils.buildErrorMessage(result));
             throw new BadRequestException("invalid group data.", null, ValidationUtils.buildErrorMessage(result));
