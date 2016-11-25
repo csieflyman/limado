@@ -1,0 +1,870 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Party API",
+        "description": "新增、修改、搜尋、刪除 Party 類型的物件，包含使用者 User, 組織 Orgranization, 群組 Group",
+        "version": "1.0.0"
+    },
+    "host": "@FQDN@",
+    "schemes": [
+        "http"
+    ],
+    "basePath": "/collab/api/v1",
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/users": {
+            "post": {
+                "summary": "新增使用者",
+                "description": "新增使用者",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": " 1. id 屬性將自動產生 2. type 屬性值必須為 user 3. identity 屬性不得與其它使用者重複 4. creationDate, modificationDate 屬性將自動產生 5. parents 屬性可填入已存在的組織、群組以建立 child 關係 6. 不允許填入 children 屬性",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Party"
+                        }
+                    }
+                ],
+                "tags": [
+                    "User"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "使用者物件(含 id 屬性)",
+                        "schema": {
+                            "$ref": "#/definitions/Party"
+                        }
+                    },
+                    "400": {
+                        "description": "不合法的屬性值",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "非預期錯誤",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "put": {
+                "summary": "修改使用者",
+                "description": "修改使用者",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "party uuid",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": " 1. id 屬性必填 2. type 屬性值必須為 user 3. identity 屬性不得與其它使用者重複 4. creationDate, modificationDate 是唯讀屬性 5. parents 屬性可填入已存在的組織、群組以建立或刪除 child 關係 6. 不允許填入 children 屬性",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Party"
+                        }
+                    }
+                ],
+                "tags": [
+                    "User"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "無回應內容"
+                    },
+                    "400": {
+                        "description": "不合法的屬性值",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "非預期錯誤",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations": {
+            "post": {
+                "summary": "新增組織",
+                "description": "新增組織",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": " 1. id 屬性將自動產生 2. type 屬性值必須為 organization 3. identity 屬性不得與其它組織重複 4. creationDate, modificationDate 屬性將自動產生 5. parents 屬性可填入已存在的組織以建立 child 關係 6. children 屬性可填入已存在的組織、使用者以建立 child 關係",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Party"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Organization"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "組織物件(含 id 屬性)",
+                        "schema": {
+                            "$ref": "#/definitions/Party"
+                        }
+                    },
+                    "400": {
+                        "description": "不合法的屬性值",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "非預期錯誤",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{id}": {
+            "put": {
+                "summary": "修改組織",
+                "description": "修改組織",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "party uuid",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": " 1. id 屬性必填 2. type 屬性值必須為 organization 3. identity 屬性不得與其它組織重複 4. creationDate, modificationDate 是唯讀屬性 5. parents 屬性可填入已存在的組織以建立或刪除 child 關係 6. children 屬性可填入已存在的組織、使用者以建立 child 關係",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Party"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Organization"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "無回應內容"
+                    },
+                    "400": {
+                        "description": "不合法的屬性值",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "非預期錯誤",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{parentId}/child/{childId}": {
+            "post": {
+                "summary": "新增組織成員",
+                "description": "新增組織成員",
+                "parameters": [
+                    {
+                        "name": "parentId",
+                        "in": "path",
+                        "description": "組織 id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "childId",
+                        "in": "path",
+                        "description": "成員 id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                ],
+                "tags": [
+                    "Organization"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "無回應內容"
+                    },
+                    "400": {
+                        "description": "不合法的 uuid 或成員類型",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "非預期錯誤",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "刪除組織成員",
+                "description": "刪除組織成員",
+                "parameters": [
+                    {
+                        "name": "parentId",
+                        "in": "path",
+                        "description": "組織 id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "childId",
+                        "in": "path",
+                        "description": "成員 id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                ],
+                "tags": [
+                    "Organization"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "無回應內容"
+                    },
+                    "400": {
+                        "description": "不合法的 uuid",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "非預期錯誤",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/groups": {
+            "post": {
+                "summary": "新增群組",
+                "description": "新增群組",
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": " 1. id 屬性將自動產生 2. type 屬性值必須為 group 3. identity 屬性不得與其它群組重複 4. creationDate, modificationDate 屬性將自動產生 5. parents 屬性可填入已存在的群組以建立 child 關係 6. children 屬性可填入已存在的群組、組織、使用者以建立 child 關係",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Party"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "群組物件(含 id 屬性)",
+                        "schema": {
+                            "$ref": "#/definitions/Party"
+                        }
+                    },
+                    "400": {
+                        "description": "不合法的屬性值",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "非預期錯誤",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/groups/{id}": {
+            "put": {
+                "summary": "修改群組",
+                "description": "修改群組",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "party uuid",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "description": " 1. id 屬性必填 2. type 屬性值必須為 organization 3. identity 屬性不得與其它群組重複 4. creationDate, modificationDate 是唯讀屬性 5. parents 屬性可填入已存在的群組以建立或刪除 child 關係 6. children 屬性可填入已存在的群組、組織、使用者以建立 child 關係",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Party"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "無回應內容"
+                    },
+                    "400": {
+                        "description": "不合法的屬性值",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "非預期錯誤",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/group/{parentId}/child/{childId}": {
+            "post": {
+                "summary": "新增群組成員",
+                "description": "新增群組成員",
+                "parameters": [
+                    {
+                        "name": "parentId",
+                        "in": "path",
+                        "description": "群組 id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "childId",
+                        "in": "path",
+                        "description": "成員 id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "無回應內容"
+                    },
+                    "400": {
+                        "description": "不合法的 uuid",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "非預期錯誤",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "刪除群組成員",
+                "description": "刪除群組成員",
+                "parameters": [
+                    {
+                        "name": "parentId",
+                        "in": "path",
+                        "description": "群組 id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "childId",
+                        "in": "path",
+                        "description": "成員 id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "無回應內容"
+                    },
+                    "400": {
+                        "description": "不合法的 uuid",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "非預期錯誤",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/parties": {
+            "delete": {
+                "summary": "刪除 Party",
+                "description": "刪除 Party",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "body",
+                        "description": "party uuid array",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "tags": [
+                    "Party"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "無回應內容"
+                    },
+                    "400": {
+                        "description": "不合法的 uuid",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "非預期錯誤",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            },
+            "get": {
+                "summary": "搜尋 Party",
+                "description": "搜尋 Party",
+                "parameters": [
+                    {
+                        "name": "q_predicates",
+                        "in": "query",
+                        "description": "q_predicates=[identity = user1;name = James]",
+                        "type": "string"
+                    },
+                    {
+                        "name": "q_predicatesDisjunction",
+                        "in": "query",
+                        "description": "指定 q_predicates 裡面的條件為 disjunction",
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "q_fetchRelations",
+                        "in": "query",
+                        "description": "q_fetchRelations=parents,children",
+                        "type": "string"
+                    },
+                    {
+                        "name": "q_fetchProperties",
+                        "in": "query",
+                        "description": "q_fetchProperties=id,identity,name",
+                        "type": "string"
+                    },
+                    {
+                        "name": "q_onlySize",
+                        "in": "query",
+                        "description": "當值為 true 時，僅回傳查詢筆數",
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "q_sort",
+                        "in": "query",
+                        "description": "q_sort=+identity,-name (+ 代表 asc, - 代表 desc)",
+                        "type": "string"
+                    },
+                    {
+                        "name": "q_offset",
+                        "in": "query",
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    {
+                        "name": "q_limit",
+                        "in": "query",
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                ],
+                "tags": [
+                    "Party"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "party array",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Party"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "不合法的搜尋參數",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "非預期錯誤",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/parties/{id}": {
+            "get": {
+                "summary": "取得 Party",
+                "operationId": "getById",
+                "description": "根據 id 取得 party.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "party uuid",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "q_fetchRelations",
+                        "in": "query",
+                        "description": "q_fetchRelations=parents,children",
+                        "type": "string"
+                    },
+                    {
+                        "name": "q_fetchProperties",
+                        "in": "query",
+                        "description": "q_fetchProperties=id,identity,name",
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "Party"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "party object",
+                        "schema": {
+                            "$ref": "#/definitions/Party"
+                        }
+                    },
+                    "400": {
+                        "description": "不合法的 uuid 或查詢參數",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "404": {
+                        "description": "id 不存在",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "非預期錯誤",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/parties/{id}/parents": {
+            "get": {
+                "summary": "取得某個 Party 的父物件",
+                "description": "取得某個 Party 的父物件",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "party uuid",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                ],
+                "tags": [
+                    "Party"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "party array",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Party"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "不合法的 uuid",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "非預期錯誤",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/parties/{id}/children": {
+            "get": {
+                "summary": "取得某個 Party 的子成員",
+                "description": "取得某個 Party 的子成員",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "party uuid",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                ],
+                "tags": [
+                    "Party"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "party array",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Party"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "不合法的 uuid",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "非預期錯誤",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/parties/enable": {
+            "put": {
+                "summary": "啟用 Party",
+                "description": "啟用 Party",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "body",
+                        "description": "party uuid array",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "uuid"
+                            }
+                        }
+                    }
+                ],
+                "tags": [
+                    "Party"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "無回應內容"
+                    },
+                    "400": {
+                        "description": "不合法的 uuid",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "非預期錯誤",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/parties/disable": {
+            "put": {
+                "summary": "停用 Party",
+                "description": "停用 Party",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "body",
+                        "description": "party uuid array",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "tags": [
+                    "Party"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "無回應內容"
+                    },
+                    "400": {
+                        "description": "不合法的 uuid",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "非預期錯誤",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Party": {
+            "type": "object",
+            "required": [
+                "type",
+                "identity",
+                "name"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "新增 Party 時自動產生，在所有 Party類型當中必須為一"
+                },
+                "type": {
+                    "type": "string",
+                    "description": "必須為 user, organization, group 三者之一"
+                },
+                "identity": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 16,
+                    "pattern": "^[a-zA-z]([\\\\w\\\\_\\\\-])+$",
+                    "description": "Party 識別名稱，在該Party類型當中必須唯一。"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 16,
+                    "description": "Party 名稱，可為任意字元"
+                },
+                "email": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9.!#$%&'*+\\\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "creationDate": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "屬性值自動產生。格式為 yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
+                },
+                "modificationDate": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "屬性值自動產生。格式為 yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
+                },
+                "parents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Party"
+                    },
+                    "description": "父 Party 物件陣列"
+                },
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Party"
+                    },
+                    "description": "子成員 Party 物件陣列"
+                }
+            }
+        },
+        "Error": {
+            "type": "object",
+            "properties": {
+                "errorCode": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
