@@ -54,6 +54,6 @@ public class PartyFormValidator implements Validator{
     }
 
     private boolean checkEmail(String email) {
-        return StringUtils.isNotBlank(email) && email.length() >= 6 && email.length() <= 80 && EMAIL_PATTERN.matcher(email).matches();
+        return StringUtils.isEmpty(email) || (StringUtils.isNotBlank(email) && EMAIL_PATTERN.matcher(email).matches());
     }
 }

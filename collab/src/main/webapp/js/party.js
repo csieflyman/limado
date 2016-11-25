@@ -264,10 +264,11 @@ $(function () {
 
             valid = valid && checkLength( identity, "identity", 2, 16);
             valid = valid && checkLength( name, "name", 1, 16 );
-            valid = valid && checkLength( email, "email", 6, 80 );
 
             valid = valid && checkRegexp( identity, /^[a-zA-z]([0-9A-Za-z_-])+$/i, "identity may consist of a-z, A-Z, 0-9, underscores, spaces and must begin with a letter." );
-            valid = valid && checkRegexp( email, emailRegex, "eg. abc@def.com" );
+            if(email.val() !== '') {
+                valid = valid && checkRegexp( email, emailRegex, "eg. abc@def.com" );
+            }
             return valid;
         }
 

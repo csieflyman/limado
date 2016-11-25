@@ -87,7 +87,6 @@ public class PartyRestControllerTest {
             String identity = "org" + i;
             Organization org = new Organization(identity);
             org.setName(" I am " + identity);
-            org.setEmail(identity + "@example.com");
             orgMap.put(identity, org);
         }
         groupMap = new HashMap<>();
@@ -95,7 +94,6 @@ public class PartyRestControllerTest {
             String identity = "group" + i;
             Group group = new Group(identity);
             group.setName(" I am " + identity);
-            group.setEmail(identity + "@example.com");
             groupMap.put(identity, group);
         }
     }
