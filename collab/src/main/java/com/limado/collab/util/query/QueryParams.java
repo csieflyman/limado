@@ -111,7 +111,7 @@ public class QueryParams {
         List<Predicate> predicates;
         try {
             predicates = predicateStrings.stream().map(ps -> ps.trim()).filter(ps -> StringUtils.isNotEmpty(ps)).map(ps -> Lists.newArrayList(Splitter.on(" ").split(ps)))
-                    .map(psList -> new Predicate(psList.get(0), Operator.exprValueOf(psList.get(1)), psList.get(2))).collect(Collectors.toList());
+                    .map(psList -> new Predicate(psList.get(0), Operator.exprValueOf(psList.get(1)), String.join(" ", psList.subList(2, psList.size())))).collect(Collectors.toList());
         }catch (Throwable e) {
             throw new IllegalArgumentException("invalid q_predicate format: " + s, e);
         }

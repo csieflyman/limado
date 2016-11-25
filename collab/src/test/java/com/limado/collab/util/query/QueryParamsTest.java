@@ -5,6 +5,8 @@
 package com.limado.collab.util.query;
 
 import com.google.common.collect.Sets;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -17,6 +19,8 @@ import java.util.Set;
  */
 public class QueryParamsTest {
 
+    private static final Logger log = LogManager.getLogger(QueryParamsTest.class);
+
     @Test
     public void parseOrderByString() {
         QueryParams params = new QueryParams();
@@ -28,9 +32,9 @@ public class QueryParamsTest {
     @Test
     public void parsePredicateString() {
         QueryParams params = new QueryParams();
-        params.put(QueryParams.Q_PREDICATES, "[aaa = 111 ; bbb in (1,2,3)]");
+        params.put(QueryParams.Q_PREDICATES, "[aaa = a b c  ; bbb in (1, 2, 3)]");
         List<Predicate> predicates = params.getPredicates();
-        Assert.assertEquals(Arrays.asList(new Predicate("aaa", Operator.EQ, "111"), new Predicate("bbb", Operator.IN, "(1,2,3)")), predicates);
+        Assert.assertEquals(Arrays.asList(new Predicate("aaa", Operator.EQ, "a b c"), new Predicate("bbb", Operator.IN, "(1, 2, 3)")), predicates);
     }
 
     @Test
