@@ -45,12 +45,17 @@ dependencies {
 Properties props = new Properties()
 props.load(new FileInputStream(rootProject.projectDir.absolutePath + '/gradle.properties'))
 
-task deploy(dependsOn:build) {
+task deployWar(dependsOn:build) {
     doLast {
         copy {
             from 'build/libs/collab.war'
             into "$webapps_dir"
         }
+    }
+}
+
+task deployDoc {
+    doLast {
         copy {
             from 'docs/api'
             filter(ReplaceTokens, tokens: props)
@@ -59,6 +64,8 @@ task deploy(dependsOn:build) {
         }
     }
 }
+
+task deploy(dependsOn: [deployDoc, deployWar])
 
 processResources {
     with copySpec {
