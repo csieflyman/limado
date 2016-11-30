@@ -506,12 +506,6 @@
                         "type": "string"
                     },
                     {
-                        "name": "q_fetchProperties",
-                        "in": "query",
-                        "description": "q_fetchProperties=id,identity,name",
-                        "type": "string"
-                    },
-                    {
                         "name": "q_onlySize",
                         "in": "query",
                         "description": "當值為 true 時，僅回傳查詢筆數",
@@ -582,12 +576,6 @@
                         "name": "q_fetchRelations",
                         "in": "query",
                         "description": "q_fetchRelations=parents,children",
-                        "type": "string"
-                    },
-                    {
-                        "name": "q_fetchProperties",
-                        "in": "query",
-                        "description": "q_fetchProperties=id,identity,name",
                         "type": "string"
                     }
                 ],
