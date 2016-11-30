@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.limado.collab.model.Party;
 import com.limado.collab.util.converter.ConversionException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -54,7 +55,7 @@ public class JsonConverter {
         module.addAbstractTypeMapping(List.class, ArrayList.class);
         module.addAbstractTypeMapping(Map.class, HashMap.class);
         module.addAbstractTypeMapping(Set.class, HashSet.class);
-        module.addSerializer(JsonView.class, new JsonViewSerializer());
+        module.addSerializer(Party.class, new PartySerializer());
         mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZZ"));
         mapper.registerModule(module);
         mapper.registerModule(new JodaModule());

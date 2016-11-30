@@ -1,6 +1,6 @@
 $(function () {
     var dataTable,
-        defaultQueryUrl = 'api/v1/parties?q_sort=identity&q_fetchProperties=id,identity,name,type,enabled',
+        defaultQueryUrl = 'api/v1/parties?q_sort=+identity',
         select_all = $('#select_all'),
         select_all_page_checked = [];
 
@@ -123,7 +123,7 @@ $(function () {
             }
 
             $.ajax({
-                url:'api/v1/parties/' + dataTable.row( this ).data().id + '?q_fetchProperties=id,identity,name,type,enabled,email,parents,children&q_fetchRelations=parents,children',
+                url:'api/v1/parties/' + dataTable.row( this ).data().id + '?q_fetchRelations=parents,children',
                 type:"GET",
                 dataType:'json',
                 success: function(response) {
@@ -164,7 +164,7 @@ $(function () {
                 return {
                     source: function(request, autoCompleteResponse){
                         $.ajax({
-                            url:'api/v1/parties?q_fetchProperties=id,identity,name,type&q_predicates=[identity like ' + request.term + '%25 ; '
+                            url:'api/v1/parties?q_predicates=[identity like ' + request.term + '%25 ; '
                             + (isParent ? buildParentsTypeQueryPredicate(partyType) : buildChildrenTypeQueryPredicate(partyType)) + ']',
                             type: 'GET',
                             dataType: 'json',

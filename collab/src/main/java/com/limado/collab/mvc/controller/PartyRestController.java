@@ -4,14 +4,10 @@
 
 package com.limado.collab.mvc.controller;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Sets;
 import com.limado.collab.model.Party;
 import com.limado.collab.mvc.exception.BadRequestException;
 import com.limado.collab.mvc.exception.ResourceNotFoundException;
 import com.limado.collab.service.PartyService;
-import com.limado.collab.util.converter.json.JsonView;
-import com.limado.collab.util.converter.json.Match;
 import com.limado.collab.util.query.QueryParams;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,13 +32,12 @@ public class PartyRestController {
 
     @GetMapping(value = "{uuidString}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
-    public Object getById(@PathVariable String uuidString, @RequestParam(name=QueryParams.Q_FETCH_RELATIONS, required=false) String fetchRelations,
-                            @RequestParam(name=QueryParams.Q_FETCH_PROPERTIES, required=false) String fetchProperties) {
-        log.debug("getById: " + uuidString + " , fetchRelations = " + fetchRelations + ", fetchProperties = " + fetchProperties);
+    public Party getById(@PathVariable String uuidString, @RequestParam(name = QueryParams.Q_FETCH_RELATIONS, required = false) String fetchRelations) {
+        log.debug("getById: " + uuidString + " , fetchRelations = " + fetchRelations);
         UUID uuid;
         try {
             uuid = UUID.fromString(uuidString);
-        }catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new BadRequestException("invalid uuid format", e, uuidString);
         }
 
@@ -50,33 +45,22 @@ public class PartyRestController {
         try {
             if (fetchRelations != null) {
                 party = partyService.getById(uuid, fetchRelations.split(","));
-                if(fetchRelations.contains(Party.RELATION_PARENT)) {
-                    removePartyRelations(party.getParents());
-                }
-                if(fetchRelations.contains(Party.RELATION_CHILDREN)) {
-                    removePartyRelations(party.getChildren());
-                }
             } else {
                 party = partyService.getById(uuid);
             }
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new ResourceNotFoundException("party uuid is not exist", e, uuidString);
         }
-
-        if (fetchProperties != null) {
-            return JsonView.with(party).onClass(Party.class, Match.match().exclude("*").include(Sets.newHashSet(Splitter.on(",").split(fetchProperties))));
-        } else {
-            return party;
-        }
+        return party;
     }
 
-    @GetMapping(value ="{uuidString}/parents", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "{uuidString}/parents", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public Object getParents(@PathVariable String uuidString) {
         UUID uuid;
         try {
             uuid = UUID.fromString(uuidString);
-        }catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new BadRequestException("invalid uuid format", e, uuidString);
         }
         Set<Party> parents = partyService.getParents(uuid);
@@ -84,13 +68,13 @@ public class PartyRestController {
         return parents;
     }
 
-    @GetMapping(value ="{uuidString}/children", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "{uuidString}/children", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public Object getChildren(@PathVariable String uuidString) {
         UUID uuid;
         try {
             uuid = UUID.fromString(uuidString);
-        }catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new BadRequestException("invalid uuid format", e, uuidString);
         }
         Set<Party> children = partyService.getChildren(uuid);
@@ -103,28 +87,11 @@ public class PartyRestController {
     public Object find(@RequestParam() Map<String, String> requestParam) {
         log.debug("find requestParam: " + requestParam);
         QueryParams params = parseRequestParamToQueryParams(requestParam);
-        if(params.isOnlySize()) {
+        if (params.isOnlySize()) {
             return partyService.findSize(params);
-        }
-        else {
+        } else {
             List<Party> parties = partyService.find(params);
-
-            if(!params.getFetchRelations().isEmpty()) {
-                parties.forEach(party -> {
-                    if (params.getFetchRelations().contains(Party.RELATION_PARENT)) {
-                        removePartyRelations(party.getParents());
-                    }
-                    if (params.getFetchRelations().contains(Party.RELATION_CHILDREN)) {
-                        removePartyRelations(party.getChildren());
-                    }
-                });
-            }
-
-            if (!params.getFetchProperties().isEmpty()) {
-                return JsonView.with(parties).onClass(Party.class, Match.match().exclude("*").include(params.getFetchProperties()));
-            } else {
-                return parties;
-            }
+            return parties;
         }
     }
 
@@ -134,7 +101,7 @@ public class PartyRestController {
         List<UUID> uuids;
         try {
             uuids = uuidStringList.stream().map(UUID::fromString).collect(Collectors.toList());
-        }catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new BadRequestException("invalid uuid format", e, uuidStringList);
         }
         partyService.enable(uuids);
@@ -146,7 +113,7 @@ public class PartyRestController {
         List<UUID> uuids;
         try {
             uuids = uuidStringList.stream().map(UUID::fromString).collect(Collectors.toList());
-        }catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new BadRequestException("invalid uuid format", e, uuidStringList);
         }
         partyService.disable(uuids);
@@ -158,7 +125,7 @@ public class PartyRestController {
         List<UUID> uuids;
         try {
             uuids = uuidStringList.stream().map(UUID::fromString).collect(Collectors.toList());
-        }catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new BadRequestException("invalid uuid format", e, uuidStringList);
         }
         partyService.deleteByIds(uuids);
@@ -167,38 +134,35 @@ public class PartyRestController {
     private QueryParams parseRequestParamToQueryParams(Map<String, String> requestParam) {
         QueryParams params = new QueryParams();
 
-        if(requestParam == null)
+        if (requestParam == null)
             return params;
 
-        if(requestParam.get(QueryParams.Q_OFFSET) != null) {
-            params.put(QueryParams.Q_OFFSET, requestParam.get(QueryParams.Q_OFFSET) );
+        if (requestParam.get(QueryParams.Q_OFFSET) != null) {
+            params.put(QueryParams.Q_OFFSET, requestParam.get(QueryParams.Q_OFFSET));
         }
-        if(requestParam.get(QueryParams.Q_LIMIT) != null) {
-            params.put(QueryParams.Q_LIMIT, requestParam.get(QueryParams.Q_LIMIT) );
+        if (requestParam.get(QueryParams.Q_LIMIT) != null) {
+            params.put(QueryParams.Q_LIMIT, requestParam.get(QueryParams.Q_LIMIT));
         }
-        if(requestParam.get(QueryParams.Q_SORT) != null) {
-            params.put(QueryParams.Q_SORT, requestParam.get(QueryParams.Q_SORT) );
+        if (requestParam.get(QueryParams.Q_SORT) != null) {
+            params.put(QueryParams.Q_SORT, requestParam.get(QueryParams.Q_SORT));
         }
-        if(requestParam.get(QueryParams.Q_ONLY_SIZE) != null) {
-            params.put(QueryParams.Q_ONLY_SIZE, requestParam.get(QueryParams.Q_ONLY_SIZE) );
+        if (requestParam.get(QueryParams.Q_ONLY_SIZE) != null) {
+            params.put(QueryParams.Q_ONLY_SIZE, requestParam.get(QueryParams.Q_ONLY_SIZE));
         }
-        if(requestParam.get(QueryParams.Q_PREDICATES) != null) {
-            params.put(QueryParams.Q_PREDICATES, requestParam.get(QueryParams.Q_PREDICATES) );
+        if (requestParam.get(QueryParams.Q_PREDICATES) != null) {
+            params.put(QueryParams.Q_PREDICATES, requestParam.get(QueryParams.Q_PREDICATES));
         }
-        if(requestParam.get(QueryParams.Q_PREDICATES_DISJUNCTION) != null) {
-            params.put(QueryParams.Q_PREDICATES_DISJUNCTION, requestParam.get(QueryParams.Q_PREDICATES_DISJUNCTION) );
+        if (requestParam.get(QueryParams.Q_PREDICATES_DISJUNCTION) != null) {
+            params.put(QueryParams.Q_PREDICATES_DISJUNCTION, requestParam.get(QueryParams.Q_PREDICATES_DISJUNCTION));
         }
-        if(requestParam.get(QueryParams.Q_FETCH_PROPERTIES) != null) {
-            params.put(QueryParams.Q_FETCH_PROPERTIES, requestParam.get(QueryParams.Q_FETCH_PROPERTIES) );
-        }
-        if(requestParam.get(QueryParams.Q_FETCH_RELATIONS) != null) {
-            params.put(QueryParams.Q_FETCH_RELATIONS, requestParam.get(QueryParams.Q_FETCH_RELATIONS) );
+        if (requestParam.get(QueryParams.Q_FETCH_RELATIONS) != null) {
+            params.put(QueryParams.Q_FETCH_RELATIONS, requestParam.get(QueryParams.Q_FETCH_RELATIONS));
         }
 
         return params;
     }
 
-    // avoid StackOverFlow problem when serialize party relations recursively
+    // do not serialize relations
     private void removePartyRelations(Collection<Party> parties) {
         if(parties != null) {
             parties.forEach(party -> party.setParents(null));

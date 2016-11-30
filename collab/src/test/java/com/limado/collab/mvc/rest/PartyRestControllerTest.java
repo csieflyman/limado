@@ -171,15 +171,12 @@ public class PartyRestControllerTest {
         // getById with parameters
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.put(QueryParams.Q_FETCH_RELATIONS, Arrays.asList(Party.RELATION_PARENT, Party.RELATION_CHILDREN));
-        params.put(QueryParams.Q_FETCH_PROPERTIES, Arrays.asList("id", "type", "identity", "name", "parents", "children"));
         mockMvc.perform(get(API_PATH + "/parties/" + org1.getId())
                 .accept(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .params(params))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(jsonPath("$.name").value("org1 modified"))
-                .andExpect(jsonPath("$.email").doesNotExist())
-                .andExpect(jsonPath("$.enabled").doesNotExist())
                 .andExpect(jsonPath("$.parents[0].id").value(group1.getId().toString()))
                 .andExpect(jsonPath("$.children[0].id").value(user1.getId().toString()))
                 .andReturn();
@@ -199,12 +196,9 @@ public class PartyRestControllerTest {
         mockMvc.perform(get(API_PATH + "/parties")
                 .accept(MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .param(QueryParams.Q_PREDICATES, "[id = " + org1.getId() + "]")
-                .param(QueryParams.Q_FETCH_RELATIONS, Party.RELATION_PARENT + "," + Party.RELATION_CHILDREN)
-                .param(QueryParams.Q_FETCH_PROPERTIES, "id,type,identity,name,parents,children"))
+                .param(QueryParams.Q_FETCH_RELATIONS, Party.RELATION_PARENT + "," + Party.RELATION_CHILDREN))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(jsonPath("$[0].email").doesNotExist())
-                .andExpect(jsonPath("$[0].enabled").doesNotExist())
                 .andExpect(jsonPath("$[0].parents[0].id").value(group1.getId().toString()))
                 .andExpect(jsonPath("$[0].children[0].id").value(user1.getId().toString()));
 
