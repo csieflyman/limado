@@ -448,7 +448,7 @@ $(function () {
             var identity = $('input[name=search_identity]').val();
             var name = $('input[name=search_name]').val();
             var types = $('input[name=search_type]:checked').map(function() {
-                return this.value;
+                return "'" + this.value + "'";
             }).get().join();
             var enabled = $('input[name=search_enabled]:checked').val();
 
