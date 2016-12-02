@@ -7,6 +7,17 @@ apply plugin: 'findbugs'
 apply plugin: 'pmd'
 //apply plugin: 'checkstyle'
 
+Properties props = new Properties()
+props.load(new FileInputStream(rootProject.projectDir.absolutePath + '/gradle.properties'))
+
+ext {
+    maven_group_id = 'com.limado.collab'
+    maven_artifact_id = 'collab'
+    maven_version = '1.0-SNAPSHOT'
+}
+apply plugin: 'maven'
+apply from: '../mvn.gradle'
+
 dependencies {
     compile group: 'org.springframework', name: 'spring-core', version: '4.3.2.RELEASE'
     compile group: 'org.springframework', name: 'spring-aop', version: '4.3.2.RELEASE'
@@ -41,9 +52,6 @@ dependencies {
     testRuntime group: 'com.jayway.jsonpath', name: 'json-path', version: '2.2.0'
     testRuntime group: 'org.skyscreamer', name: 'jsonassert', version: '1.4.0'
 }
-
-Properties props = new Properties()
-props.load(new FileInputStream(rootProject.projectDir.absolutePath + '/gradle.properties'))
 
 task deployWar(dependsOn:build) {
     doLast {
