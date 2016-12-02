@@ -32,3 +32,6 @@ test_db_driverClass=org.mariadb.jdbc.Driver
 nexus_user=
 nexus_password=
 nexus_host=
+
+findbugs_ignoreFailures=false
+pmd_ignoreFailures=false

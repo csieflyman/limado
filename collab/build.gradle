@@ -166,11 +166,11 @@ tasks.withType(FindBugs) {
         html.enabled false
     }
     reportLevel = "medium"
-    ignoreFailures = true
+    ignoreFailures = "$findbugs_ignoreFailures"
 }
 
 pmd {
-    ignoreFailures = true
+    ignoreFailures = "$pmd_ignoreFailures"
 }
 
 // ========== Dev ==========
