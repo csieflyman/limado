@@ -20,3 +20,4 @@ gradle
 gradlew*
 
 gradle.properties
+version.txt
