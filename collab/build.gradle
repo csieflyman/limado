@@ -1,23 +1,13 @@
 import org.apache.tools.ant.filters.ReplaceTokens
-import org.apache.tools.ant.taskdefs.condition.Os
 
 apply plugin: 'war'
-apply from: '../gretty.plugin'
-apply plugin: "jacoco"
-apply plugin: 'findbugs'
-apply plugin: 'pmd'
-//apply plugin: 'checkstyle'
-
-Properties props = new Properties()
-props.load(new FileInputStream(rootProject.projectDir.absolutePath + '/gradle.properties'))
 
 ext {
+    has_dbTasks = true
     maven_group_id = 'com.limado.collab'
     maven_artifact_id = 'collab'
     maven_version = '1.0-SNAPSHOT'
 }
-apply plugin: 'maven'
-apply from: '../mvn.gradle'
 
 dependencies {
     compile group: 'org.springframework', name: 'spring-core', version: '4.3.2.RELEASE'
@@ -26,7 +16,6 @@ dependencies {
     compile group: 'org.springframework', name: 'spring-context', version: '4.3.2.RELEASE'
     compile group: 'org.springframework', name: 'spring-orm', version: '4.3.2.RELEASE'
     compile group: 'org.springframework', name: 'spring-webmvc', version: '4.3.2.RELEASE'
-
 
     compile group: 'org.hibernate', name: 'hibernate-core', version: '5.2.2.Final'
     compile group: 'org.hibernate.javax.persistence', name: 'hibernate-jpa-2.1-api', version: '1.0.0.Final'
@@ -67,153 +56,11 @@ task deployDoc {
     doLast {
         copy {
             from 'docs/api'
-            filter(ReplaceTokens, tokens: props)
+            filter(ReplaceTokens, tokens: project.ext.properties)
             filteringCharset = 'UTF-8'
             into "$webapps_dir/docs/api"
         }
     }
 }
 
-task deployGitVersionFile(type:Exec) {
-    if (Os.isFamily(Os.FAMILY_UNIX)) {
-        workingDir '.'
-        commandLine 'git', 'describe'
-        standardOutput = new FileOutputStream('version.txt')
-    }
-    else if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        workingDir '.'
-        commandLine 'cmd', '/c', 'git', 'describe'
-        standardOutput = new FileOutputStream('version.txt')
-    }
-    doLast {
-        copy {
-            from 'version.txt'
-            into "$webapps_dir"
-        }
-    }
-}
-
 task deploy(dependsOn: [deployDoc, deployWar])
-
-processResources {
-    with copySpec {
-        from 'src/main/resources'
-        include '**/*.properties'
-        include '**/*.xml'
-        filter(ReplaceTokens, tokens: props)
-    }
-    exclude 'sql'
-}
-
-processTestResources {
-    with copySpec {
-        from 'src/test/resources'
-        include '**/*.properties'
-        include '**/*.xml'
-        filter(ReplaceTokens, tokens: props)
-    }
-}
-
-buildscript {
-    repositories {
-        jcenter()
-    }
-
-    dependencies {
-        classpath 'org.mariadb.jdbc:mariadb-java-client:1.4.6'
-    }
-
-    URLClassLoader loader = groovy.sql.Sql.class.classLoader
-    project.buildscript.configurations.classpath.each { File file ->
-        loader.addURL(file.toURL())
-    }
-}
-
-import groovy.sql.Sql
-
-task createTables {
-    doLast {
-        def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
-        new File('src/main/resources/sql/create.sql').eachLine {
-            sql.execute(it)
-        }
-    }
-}
-
-task dropTables {
-    doLast {
-        def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
-        new File('src/main/resources/sql/drop.sql').eachLine {
-            sql.execute(it)
-        }
-    }
-}
-
-task createTestTables {
-    doLast {
-        def sql = Sql.newInstance("$test_db_url", "$test_db_user", "$test_db_password", "$test_db_driverClass")
-        new File('src/main/resources/sql/create.sql').eachLine {
-            sql.execute(it)
-        }
-    }
-}
-
-task dropTestTables {
-    doLast {
-        def sql = Sql.newInstance("$test_db_url", "$test_db_user", "$test_db_password", "$test_db_driverClass")
-        new File('src/main/resources/sql/drop.sql').eachLine {
-            sql.execute(it)
-        }
-    }
-}
-
-test {
-    reports {
-        junitXml.enabled = true
-        html.enabled = false
-    }
-}
-
-jacocoTestReport {
-    reports {
-        xml.enabled true
-    }
-}
-
-tasks.withType(FindBugs) {
-    reports {
-        xml.enabled true
-        html.enabled false
-    }
-    reportLevel = "medium"
-    ignoreFailures = "$findbugs_ignoreFailures"
-}
-
-pmd {
-    ignoreFailures = "$pmd_ignoreFailures"
-}
-
-// ========== Dev ==========
-/*
-checkstyle {
-    toolVersion = "7.1.1"
-}
-tasks.withType(Checkstyle) {
-    reports {
-        xml.enabled false
-        html.enabled true
-    }
-}
-
-gretty {
-    //http://akhikhl.github.io/gretty-doc/Gretty-configuration.html
-    servletContainer = 'jetty9'
-    httpPort = 80
-    jvmArgs = ['-Xms512M', '-Xmx512M', '-XX:MaxPermSize=128M']
-    realm 'auth'
-    realmConfigFile 'dev/realm.properties'
-    logDir = 'D:/log'
-    redeployMode = 'restart'
-    scanInterval = 1
-}
-*/

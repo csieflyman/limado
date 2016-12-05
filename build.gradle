@@ -1,10 +1,30 @@
+import groovy.sql.Sql
 import org.apache.tools.ant.filters.ReplaceTokens
 import org.apache.tools.ant.taskdefs.condition.Os
 
 group 'com.limado'
 
+Properties rootProps = new Properties()
+rootProps.load(new FileInputStream("gradle.properties"))
+rootProps.each{key, value -> rootProject.ext.set(key, value)}
+ext {
+    webapps_dir="$jetty_base_dir/webapps"
+}
+
 subprojects {
     apply plugin: 'java'
+    apply plugin: 'maven'
+    apply from: '../mvn.gradle'
+    apply from: '../gretty.plugin'
+    apply plugin: "jacoco"
+    apply plugin: 'findbugs'
+    apply plugin: 'pmd'
+    //apply plugin: 'checkstyle'
+
+    Properties subProjectProps = new Properties()
+    subProjectProps.load(new FileInputStream(project.projectDir.absolutePath + '/gradle.properties'))
+    rootProps.each{key, value -> project.ext.set(key, value)}
+    subProjectProps.each{key, value -> project.ext.set(key, value)}
 
     repositories {
         jcenter()
@@ -18,15 +38,156 @@ subprojects {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
     [compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
+
+    processResources {
+        with copySpec {
+            from project.projectDir.absolutePath + '/src/main/resources'
+            include '**/*.properties'
+            include '**/*.xml'
+            filter(ReplaceTokens, tokens: project.ext.properties)
+        }
+        exclude 'sql'
+    }
+
+    processTestResources {
+        with copySpec {
+            from project.projectDir.absolutePath + '/src/test/resources'
+            include '**/*.properties'
+            include '**/*.xml'
+            filter(ReplaceTokens, tokens: project.ext.properties)
+        }
+    }
+
+    buildscript {
+        repositories {
+            jcenter()
+        }
+
+        dependencies {
+            classpath 'org.mariadb.jdbc:mariadb-java-client:1.4.6'
+        }
+
+        URLClassLoader loader = groovy.sql.Sql.class.classLoader
+        project.buildscript.configurations.classpath.each { File file ->
+            loader.addURL(file.toURL())
+        }
+    }
+
+    task createTables {
+        doLast {
+            if ((project.has_dbTasks)) {
+                def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
+                new File(project.projectDir.absolutePath + '/src/main/resources/sql/create.sql').eachLine {
+                    sql.execute(it)
+                }
+            }
+        }
+    }
+
+    task dropTables {
+        doLast {
+            if ((project.has_dbTasks)) {
+                def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
+                new File(project.projectDir.absolutePath + 'src/main/resources/sql/drop.sql').eachLine {
+                    sql.execute(it)
+                }
+            }
+        }
+    }
+
+    task createTestTables {
+        doLast {
+            if ((project.has_dbTasks)) {
+                def sql = Sql.newInstance("$test_db_url", "$test_db_user", "$test_db_password", "$test_db_driverClass")
+                new File(project.projectDir.absolutePath + 'src/main/resources/sql/create.sql').eachLine {
+                    sql.execute(it)
+                }
+            }
+        }
+    }
+
+    task dropTestTables {
+        doLast {
+            if ((project.has_dbTasks)) {
+                def sql = Sql.newInstance("$test_db_url", "$test_db_user", "$test_db_password", "$test_db_driverClass")
+                new File(project.projectDir.absolutePath + 'src/main/resources/sql/drop.sql').eachLine {
+                    sql.execute(it)
+                }
+            }
+        }
+    }
+
+    test {
+        reports {
+            junitXml.enabled = true
+            html.enabled = false
+        }
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.enabled true
+        }
+    }
+
+    tasks.withType(FindBugs) {
+        reports {
+            xml.enabled true
+            html.enabled false
+        }
+        reportLevel = "medium"
+        ignoreFailures = "$findbugs_ignoreFailures"
+    }
+
+    pmd {
+        ignoreFailures = "$pmd_ignoreFailures"
+    }
+
+    // ========== Dev ==========
+    /*
+    checkstyle {
+        toolVersion = "7.1.1"
+    }
+    tasks.withType(Checkstyle) {
+        reports {
+            xml.enabled false
+            html.enabled true
+        }
+    }
+
+    gretty {
+        //http://akhikhl.github.io/gretty-doc/Gretty-configuration.html
+        servletContainer = 'jetty9'
+        httpPort = 80
+        jvmArgs = ['-Xms512M', '-Xmx512M', '-XX:MaxPermSize=128M']
+        realm 'auth'
+        realmConfigFile project.projectDir.absolutePath + '/dev/realm.properties'
+        logDir = 'D:/log'
+        redeployMode = 'restart'
+        scanInterval = 1
+    }
+    */
 }
 
-// ========== Config ==========
-Properties props = new Properties()
-props.load(new FileInputStream("gradle.properties"))
-ext {
-    webapps_dir="$jetty_base_dir/webapps"
+// ========== Git ==========
+task deployGitVersionFile(type:Exec) {
+    if (Os.isFamily(Os.FAMILY_UNIX)) {
+        workingDir '.'
+        commandLine 'git', 'describe'
+        standardOutput = new FileOutputStream('version.txt')
+    }
+    else if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        workingDir '.'
+        commandLine 'cmd', '/c', 'git', 'describe'
+        standardOutput = new FileOutputStream('version.txt')
+    }
+    doLast {
+        copy {
+            from 'version.txt'
+            into "$webapps_dir"
+        }
+    }
 }
-
 
 // ========== Jetty ==========
 task configureJetty {
@@ -37,7 +198,7 @@ task configureJetty {
                 from 'config/jetty'
                 into "$jetty_home"
                 include 'bin/jetty.sh'
-                filter(ReplaceTokens, tokens:props)
+                filter(ReplaceTokens, tokens:rootProject.ext.properties)
             }
         }
         else if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -46,7 +207,7 @@ task configureJetty {
                 from 'config/jetty'
                 into "$jetty_home"
                 include 'bin/jetty*.bat'
-                filter(ReplaceTokens, tokens:props)
+                filter(ReplaceTokens, tokens:rootProject.ext.properties)
             }
         }
     }
@@ -59,7 +220,7 @@ task configureJettyBase {
             into "$jetty_base_dir"
             include '**/*.ini'
             include '**/*.properties'
-            filter(ReplaceTokens, tokens: props)
+            filter(ReplaceTokens, tokens: rootProject.ext.properties)
         }
     }
 }
