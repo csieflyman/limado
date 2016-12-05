@@ -93,7 +93,7 @@ task deployGitVersionFile(type:Exec) {
     }
 }
 
-task deploy(dependsOn: [deployDoc, deployWar, deployGitVersionFile])
+task deploy(dependsOn: [deployDoc, deployWar])
 
 processResources {
     with copySpec {
