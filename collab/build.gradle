@@ -1,4 +1,5 @@
 import org.apache.tools.ant.filters.ReplaceTokens
+import org.apache.tools.ant.taskdefs.condition.Os
 
 apply plugin: 'war'
 apply from: '../gretty.plugin'
@@ -73,7 +74,26 @@ task deployDoc {
     }
 }
 
-task deploy(dependsOn: [deployDoc, deployWar])
+task deployGitVersionFile(type:Exec) {
+    if (Os.isFamily(Os.FAMILY_UNIX)) {
+        workingDir '.'
+        commandLine 'git', 'describe'
+        standardOutput = new FileOutputStream('version.txt')
+    }
+    else if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        workingDir '.'
+        commandLine 'cmd', '/c', 'git', 'describe'
+        standardOutput = new FileOutputStream('version.txt')
+    }
+    doLast {
+        copy {
+            from 'version.txt'
+            into "$webapps_dir"
+        }
+    }
+}
+
+task deploy(dependsOn: [deployDoc, deployWar, deployGitVersionFile])
 
 processResources {
     with copySpec {
