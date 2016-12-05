@@ -5,7 +5,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 group 'com.limado'
 
 Properties rootProps = new Properties()
-rootProps.load(new FileInputStream("gradle.properties"))
+rootProps.load(new FileInputStream(rootProject.projectDir.absolutePath + "/gradle.properties"))
 rootProps.each{key, value -> rootProject.ext.set(key, value)}
 ext {
     webapps_dir="$jetty_base_dir/webapps"
@@ -21,10 +21,13 @@ subprojects {
     apply plugin: 'pmd'
     //apply plugin: 'checkstyle'
 
-    Properties subProjectProps = new Properties()
-    subProjectProps.load(new FileInputStream(project.projectDir.absolutePath + '/gradle.properties'))
     rootProps.each{key, value -> project.ext.set(key, value)}
-    subProjectProps.each{key, value -> project.ext.set(key, value)}
+    File subProjectPropsFile = new File(project.projectDir.absolutePath + '/gradle.properties');
+    if(subProjectPropsFile.exists()) {
+        Properties subProjectProps = new Properties()
+        subProjectProps.load(new FileInputStream(subProjectPropsFile))
+        subProjectProps.each{key, value -> project.ext.set(key, value)}
+    }
 
     repositories {
         jcenter()
