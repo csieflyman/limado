@@ -9,19 +9,17 @@ ext {
     maven_repo_pwd = "$nexus_password"
 }
 
-repositories {
-    maven {
-        credentials {
-            username maven_repo_id
-            password maven_repo_pwd
-        }
-        url "http://$nexus_host/nexus/repository/maven-public/"
-    }
-    //mavenCentral()
-}
-
 def enableUploadArchives = ext.has('maven_group_id') && ext.has('maven_artifact_id') && ext.has('maven_version')
 if (enableUploadArchives) {
+    repositories {
+        maven {
+            credentials {
+                username maven_repo_id
+                password maven_repo_pwd
+            }
+            url "http://$nexus_host/nexus/repository/maven-public/"
+        }
+    }
     uploadArchives {
         repositories {
             mavenDeployer {
