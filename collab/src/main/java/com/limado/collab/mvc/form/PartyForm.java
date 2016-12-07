@@ -17,6 +17,8 @@ public abstract class PartyForm<T extends Party> implements Form<T> {
 
     private UUID id;
 
+    private Long version;
+
     private String type;
 
     private String identity;
@@ -33,6 +35,7 @@ public abstract class PartyForm<T extends Party> implements Form<T> {
 
     protected void populatePartyProperties(T party) {
         party.setId(getId());
+        party.setVersion(getVersion());
         party.setName(getName());
         party.setIdentity(getIdentity());
         party.setEmail(getEmail());
@@ -47,6 +50,14 @@ public abstract class PartyForm<T extends Party> implements Form<T> {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 
     public String getType() {

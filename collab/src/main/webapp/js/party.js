@@ -304,7 +304,9 @@ $(function () {
                     });
                 }
                 else {
-                    party.id = partyFormDialog.dialog("option", "party").id;
+                    var oldParty = partyFormDialog.dialog("option", "party");
+                    party.id = oldParty.id;
+                    party.version = oldParty.version;
                     $.ajax({
                         url:"api/v1/" + partyType + "s/" + party.id,
                         type:"PUT",

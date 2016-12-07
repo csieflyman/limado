@@ -38,13 +38,18 @@ public abstract class Party implements Identifiable<UUID>{
     @GeneratedValue
     private UUID id;
 
+    @Version
+    private Long version;
+
     @Basic(optional = false)
     private String identity;
 
+    @Basic(optional = false)
     private String name;
 
     private String email;
 
+    @Basic(optional = false)
     private Boolean enabled = true;
 
     @Column(insertable = false, updatable = false)
@@ -71,6 +76,14 @@ public abstract class Party implements Identifiable<UUID>{
 
     public UUID getId() {
         return id;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 
     public String getType() {
