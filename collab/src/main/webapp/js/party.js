@@ -262,11 +262,11 @@ $(function () {
             var valid = true;
             allFields.removeClass( "ui-state-error" );
 
-            valid = valid && checkLength( identity, "identity", 2, 16);
-            valid = valid && checkLength( name, "name", 1, 16 );
-
-            //valid = valid && checkRegexp( identity, /^[a-zA-z]([0-9A-Za-z_-])+$/i, "identity may consist of a-z, A-Z, 0-9, underscores, spaces and must begin with a letter." );
+            valid = valid && checkLength( identity, "identity", 2, 30);
+            valid = valid && checkLength( name, "name", 1, 30 );
+            valid = valid && checkRegexp( identity, /^[a-zA-z]([0-9A-Za-z_-])+$/i, "identity may consist of a-z, A-Z, 0-9, underscores, spaces and must begin with a letter." );
             if(email.val() !== "") {
+                valid = valid && checkLength( email, "email", 1, 80 );
                 valid = valid && checkRegexp( email, emailRegex, "eg. abc@def.com" );
             }
             return valid;

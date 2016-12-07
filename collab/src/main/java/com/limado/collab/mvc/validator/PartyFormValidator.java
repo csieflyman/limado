@@ -46,14 +46,14 @@ public class PartyFormValidator implements Validator{
     }
 
     private boolean checkIdentity(String identity) {
-        return StringUtils.isNotBlank(identity) && identity.length() <= 16 && IDENTITY_PATTERN.matcher(identity).matches();
+        return StringUtils.isNotBlank(identity) && identity.length() <= 30 && IDENTITY_PATTERN.matcher(identity).matches();
     }
 
     private boolean checkName(String name) {
-        return StringUtils.isNotBlank(name) && name.length() <= 16;
+        return StringUtils.isNotBlank(name) && name.length() <= 30;
     }
 
     private boolean checkEmail(String email) {
-        return StringUtils.isEmpty(email) || (StringUtils.isNotBlank(email) && EMAIL_PATTERN.matcher(email).matches());
+        return StringUtils.isEmpty(email) || (StringUtils.isNotBlank(email) && email.length() <= 80 && EMAIL_PATTERN.matcher(email).matches());
     }
 }
