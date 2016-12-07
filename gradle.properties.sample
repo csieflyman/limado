@@ -35,3 +35,4 @@ nexus_host=
 
 findbugs_ignoreFailures=false
 pmd_ignoreFailures=false
+dbscript_ignoreFailures=false

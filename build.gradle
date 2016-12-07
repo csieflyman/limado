@@ -78,44 +78,36 @@ subprojects {
 
     task createTables {
         doLast {
-            if ((project.has_dbTasks)) {
+            if ("$has_dbTasks".toBoolean()) {
                 def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
-                new File(project.projectDir.absolutePath + '/src/main/resources/sql/create.sql').eachLine {
-                    sql.execute(it)
-                }
+                executeSQL(sql, new File(project.projectDir.absolutePath + '/src/main/resources/sql/create.sql'))
             }
         }
     }
 
     task dropTables {
         doLast {
-            if ((project.has_dbTasks)) {
+            if ("$has_dbTasks".toBoolean()) {
                 def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
-                new File(project.projectDir.absolutePath + 'src/main/resources/sql/drop.sql').eachLine {
-                    sql.execute(it)
-                }
+                executeSQL(sql, new File(project.projectDir.absolutePath + '/src/main/resources/sql/drop.sql'))
             }
         }
     }
 
     task createTestTables {
         doLast {
-            if ((project.has_dbTasks)) {
+            if ("$has_dbTasks".toBoolean()) {
                 def sql = Sql.newInstance("$test_db_url", "$test_db_user", "$test_db_password", "$test_db_driverClass")
-                new File(project.projectDir.absolutePath + 'src/main/resources/sql/create.sql').eachLine {
-                    sql.execute(it)
-                }
+                executeSQL(sql, new File(project.projectDir.absolutePath + '/src/main/resources/sql/create.sql'))
             }
         }
     }
 
     task dropTestTables {
         doLast {
-            if ((project.has_dbTasks)) {
+            if ("$has_dbTasks".toBoolean()) {
                 def sql = Sql.newInstance("$test_db_url", "$test_db_user", "$test_db_password", "$test_db_driverClass")
-                new File(project.projectDir.absolutePath + 'src/main/resources/sql/drop.sql').eachLine {
-                    sql.execute(it)
-                }
+                executeSQL(sql, new File(project.projectDir.absolutePath + '/src/main/resources/sql/drop.sql'))
             }
         }
     }
@@ -170,6 +162,21 @@ subprojects {
         scanInterval = 1
     }
     */
+}
+
+def executeSQL(groovy.sql.Sql sql, File file) {
+    file.eachLine {
+        if (!it.startsWith("--")) {
+            try {
+                sql.execute(it)
+            } catch (Throwable e) {
+                println e;
+                if (!"$dbscript_ignoreFailures".toBoolean()) {
+                    throw e
+                }
+            }
+        }
+    }
 }
 
 // ========== Git ==========
