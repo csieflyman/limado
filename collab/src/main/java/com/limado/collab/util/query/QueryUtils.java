@@ -147,6 +147,7 @@ public class QueryUtils {
         if(attribute.isAssociation()) {
             attribute = attribute.getDeclaringType().getAttribute(predicate.getNestedProperty());
         }
+        propertyName = attribute.getName();
         Class queryParameterValueClass = attribute.getJavaType();
         Object queryParameterValue;
         Object value = predicate.getValue();
@@ -154,12 +155,15 @@ public class QueryUtils {
             if(value instanceof String) {
                 String valueString = ((String)value).trim();
                 if(!(valueString.startsWith("(") && valueString.endsWith(")"))) {
-                    throw new IllegalArgumentException(String.format("value string %s should be with the format: (e1, e2)", valueString));
+                    throw new IllegalArgumentException(String.format("%s value string %s should be with the format: (e1, e2)", propertyName, valueString));
                 }
                 valueString = valueString.substring(1, valueString.length() - 1);
                 queryParameterValue = Lists.newArrayList(Splitter.on(",").split(valueString)).stream().map(element -> BeanPropertyConverter.convert(element.trim(), queryParameterValueClass)).collect(Collectors.toList());
             }
             else if(value instanceof Collection){
+                if(((Collection) value).isEmpty()) {
+                    throw new IllegalArgumentException(String.format("%s with IN operator can't has empty collection value", propertyName));
+                }
                 List<Object> queryParameterValueList = new ArrayList<>();
                 for(Object element: (Collection) value) {
                     if(element.getClass() != queryParameterValueClass) {
@@ -169,7 +173,7 @@ public class QueryUtils {
                 queryParameterValue = queryParameterValueList.isEmpty() ? value : queryParameterValueList;
             }
             else {
-                throw new IllegalArgumentException(String.format("value %s should be a collection or a string with the format: (e1, e2)", value.getClass().getName()));
+                throw new IllegalArgumentException(String.format("%s value %s should be a collection or a string with the format: (e1, e2)", propertyName, value.getClass().getName()));
             }
         }
         else {

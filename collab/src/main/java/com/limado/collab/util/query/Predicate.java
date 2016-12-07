@@ -9,6 +9,8 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.util.Collection;
+
 /**
  * author flyman
  */
@@ -29,6 +31,9 @@ public class Predicate {
         Preconditions.checkArgument(operator != null, "operator is null");
         Preconditions.checkArgument(value != null, "value is null");
         Preconditions.checkArgument(property.split("\\.").length <= 2, "nested relation or component is not supported now! " + property);
+        if(operator == Operator.IN && value instanceof Collection) {
+            Preconditions.checkArgument(!((Collection) value).isEmpty(), property + " with IN operator can't has empty collection value");
+        }
 
         this.property = property;
         this.operator = operator;
