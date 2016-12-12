@@ -13,7 +13,9 @@ $(function () {
             email = $( "#email" ),
             enabled = $("#enabled"),
             allFields = $( [] ).add(identity).add( name ).add( email ).add(enabled),
-            tips = $( ".validateTips" );
+            tips = $( ".validateTips" ),
+            parentsIdentity = $("#parents_identity"),
+            childrenIdentity = $("#children_identity");
 
         partyFormDialog = $( "#party_form_dialog" ).dialog({
             autoOpen: false,
@@ -29,6 +31,8 @@ $(function () {
             close: function() {
                 partyForm[0].reset();
                 allFields.removeClass( "ui-state-error" );
+                parentsIdentity.val("");
+                childrenIdentity.val("");
             }
         });
 
@@ -151,8 +155,8 @@ $(function () {
             parentsTable.rows.add(parents).draw(false);
             childrenTable.rows.add(children).draw(false);
 
-            $("#parents_identity").autocomplete(buildAutoCompleteOption(true));
-            $("#children_identity").autocomplete(buildAutoCompleteOption(false));
+            parentsIdentity.autocomplete(buildAutoCompleteOption(true));
+            childrenIdentity.autocomplete(buildAutoCompleteOption(false));
             if(partyType === "user") {
                 $("#children_auto_complete").hide();
             }
@@ -223,7 +227,7 @@ $(function () {
                     return "TYPE(party) = \'Group\'";
                 }
                 else if(partyType === "organization") {
-                    return "TYPE(party) = Organization";
+                    return "TYPE(party) IN (Organization,Group)";
                 }
                 else {
                     throw new Error("invalid party type " + partyType);
