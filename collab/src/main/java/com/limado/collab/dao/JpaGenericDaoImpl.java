@@ -31,7 +31,7 @@ abstract class JpaGenericDaoImpl<T extends Identifiable<ID>, ID extends Serializ
 
     private int batchSize = 20;
 
-    private Class<T> clazz;
+    protected Class<T> clazz;
 
     JpaGenericDaoImpl() {
         clazz = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
