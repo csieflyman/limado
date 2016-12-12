@@ -43,6 +43,8 @@ public class UserRestController {
         }
         User user = form.buildModel();
         user = userService.create(user);
+        user.setParents(null);
+        user.setChildren(null);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 

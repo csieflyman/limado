@@ -44,6 +44,8 @@ public class OrganizationRestController {
         }
         Organization org = form.buildModel();
         org = organizationService.create(org);
+        org.setParents(null);
+        org.setChildren(null);
         return ResponseEntity.status(HttpStatus.CREATED).body(org);
     }
 
