@@ -47,7 +47,19 @@ public interface PartyService<T extends Party> {
 
     Set<Party> getChildren(UUID id);
 
+    Set<Party> getAscendants(UUID id);
+
+    Set<Party> getDescendants(UUID id);
+
     void addChild(UUID parentId, UUID childId);
 
     void removeChild(UUID parentId, UUID childId);
+
+    void addChildren(UUID parentId, Set<UUID> childrenIds);
+
+    void removeChildren(UUID parentId, Set<UUID> childrenIds);
+
+    void addParents(UUID childId, Set<UUID> parentsIds);
+
+    void removeParents(UUID childId, Set<UUID> parentsIds);
 }

@@ -44,9 +44,6 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
     private Map<String, Party> orgMap;
     private Map<String, Party> groupMap;
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
     @Autowired
     @Qualifier("partyService")
     private PartyService<Party> partyService;
@@ -106,20 +103,23 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
 
     @Test
     public void createWithRelations() {
+        Party group1 = groupMap.get("group1");
         Party org1 = orgMap.get("org1");
         Party org2 = orgMap.get("org2");
         Party user1 = userMap.get("user1");
+        Party user2 = userMap.get("user2");
 
+        group1 = partyService.create(group1);
         org1 = partyService.create(org1);
         user1 = partyService.create(user1);
-        entityManager.flush();
-        org2.setParents(Sets.newHashSet(org1));
-        org2.setChildren(Sets.newHashSet(user1));
+        user2 = partyService.create(user2);
+        org2.setParents(Sets.newHashSet(group1, org1));
+        org2.setChildren(Sets.newHashSet(user1, user2));
         org2 = partyService.create(org2);
 
         Assert.assertNotNull(org2.getId());
-        Assert.assertEquals(Sets.newHashSet(org1), partyService.getParents(org2.getId()));
-        Assert.assertEquals(Sets.newHashSet(user1), partyService.getChildren(org2.getId()));
+        Assert.assertEquals(Sets.newHashSet(group1, org1), partyService.getParents(org2.getId()));
+        Assert.assertEquals(Sets.newHashSet(user1, user2), partyService.getChildren(org2.getId()));
     }
 
     @Test(expected=IllegalArgumentException.class)
@@ -153,6 +153,7 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
         Assert.assertEquals(Sets.newHashSet(user1), partyService.getChildren(org2.getId()));
 
         Party newOrg2 = new Organization("org2");
+        newOrg2.setVersion(org2.getVersion());
         newOrg2.setId(org2.getId());
         newOrg2.setName("org2 modified");
         newOrg2.setParents(null);
@@ -160,7 +161,7 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
         partyService.update(newOrg2);
 
         org2 = partyService.getById(org2.getId());
-        Assert.assertEquals(newOrg2.getName(), org2.getName());
+        Assert.assertEquals("org2 modified", org2.getName());
         Assert.assertEquals(Sets.newHashSet(org1), partyService.getParents(org2.getId()));
         Assert.assertEquals(Sets.newHashSet(user1), partyService.getChildren(org2.getId()));
     }
@@ -183,15 +184,17 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
         Assert.assertEquals(Sets.newHashSet(org1), partyService.getParents(org2.getId()));
         Assert.assertEquals(Sets.newHashSet(user1), partyService.getChildren(org2.getId()));
 
+        org2 = partyService.getById(org2.getId());
         Party newOrg2 = new Organization("org2");
         newOrg2.setId(org2.getId());
+        newOrg2.setVersion(org2.getVersion());
         newOrg2.setName("org2 modified");
         newOrg2.setParents(Sets.newHashSet(org3));
         newOrg2.setChildren(Sets.newHashSet(user2));
         partyService.update(newOrg2);
 
         org2 = partyService.getById(org2.getId());
-        Assert.assertEquals(newOrg2.getName(), org2.getName());
+        Assert.assertEquals("org2 modified", org2.getName());
         Assert.assertEquals(Sets.newHashSet(org3), partyService.getParents(org2.getId()));
         Assert.assertEquals(Sets.newHashSet(user2), partyService.getChildren(org2.getId()));
     }
@@ -293,13 +296,9 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
 
         // add
         partyService.addChild(org1.getId(), user1.getId());
-        partyService.addChild(org1.getId(), user2.getId());
-        partyService.addChild(group1.getId(), org1.getId());
-        partyService.addChild(group1.getId(), user1.getId());
-        partyService.addChild(group1.getId(), user2.getId());
-        partyService.addChild(group2.getId(), org1.getId());
-        partyService.addChild(group2.getId(), user1.getId());
-        partyService.addChild(group2.getId(), user2.getId());
+        partyService.addChildren(group1.getId(), Sets.newHashSet(org1.getId(), user1.getId()));
+        partyService.addChildren(group2.getId(), Sets.newHashSet(org1.getId(), user1.getId()));
+        partyService.addParents(user2.getId(), Sets.newHashSet(org1.getId(), group1.getId(), group2.getId()));
 
         // retrieve children
         Set<Party> children = partyService.getChildren(org1.getId());
@@ -318,5 +317,28 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
         Assert.assertFalse(children.contains(user1));
         parents = partyService.getParents(user1.getId());
         Assert.assertFalse(parents.contains(org1));
+
+        partyService.removeChildren(group1.getId(), Sets.newHashSet(org1.getId(), user1.getId()));
+        Assert.assertEquals(Sets.newHashSet(user2), partyService.getChildren(group1.getId()));
+        partyService.removeParents(user2.getId(), Sets.newHashSet(group1.getId(), group2.getId()));
+        Assert.assertEquals(Sets.newHashSet(org1), partyService.getParents(user2.getId()));
+    }
+
+    @Test
+    public void testGetAscendantsAndDescendants() {
+        Party user1 = partyService.create(userMap.get("user1"));
+        Party user2 = partyService.create(userMap.get("user2"));
+        Party org1 = partyService.create(orgMap.get("org1"));
+        Party group1 = partyService.create(groupMap.get("group1"));
+        Party group2 = partyService.create(groupMap.get("group2"));
+
+        partyService.addChildren(group1.getId(), Sets.newHashSet(org1.getId(), group2.getId()));
+        partyService.addChildren(group2.getId(), Sets.newHashSet(user1.getId(), user2.getId()));
+        partyService.addChildren(org1.getId(), Sets.newHashSet(user1.getId(), user2.getId()));
+
+        Assert.assertEquals(Sets.newHashSet(org1, group2, user1, user2), partyService.getDescendants(group1.getId()));
+        Assert.assertEquals(Sets.newHashSet(org1, group2, group1), partyService.getAscendants(user1.getId()));
+        Assert.assertEquals(Sets.newHashSet(user1, user2), partyService.getDescendants(group2.getId()));
+        Assert.assertEquals(Sets.newHashSet(group1), partyService.getAscendants(group2.getId()));
     }
 }

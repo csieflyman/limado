@@ -4,6 +4,7 @@
 
 package com.limado.collab.service;
 
+import com.google.common.collect.Sets;
 import com.limado.collab.model.Group;
 import com.limado.collab.model.Organization;
 import com.limado.collab.model.Party;
@@ -110,7 +111,6 @@ public class OrganizationServiceImplTest extends AbstractTransactionalJUnit4Spri
     @Test(expected = IllegalArgumentException.class)
     public void moveGroupToOrganization() {
         Organization org1 = organizationService.create(orgMap.get("org1"));
-        Organization org2 = organizationService.create(orgMap.get("org2"));
         Group group1 = groupService.create(groupMap.get("group1"));
         organizationService.movePartyToOrganization(group1.getId(), org1.getId());
     }
@@ -120,6 +120,15 @@ public class OrganizationServiceImplTest extends AbstractTransactionalJUnit4Spri
         Organization org1 = orgMap.get("org1");
         Group group1 = groupMap.get("group1");
         organizationService.addChild(org1.getId(), group1.getId());
+    }
+
+    @Test
+    public void addChildren() {
+        Organization org1 = organizationService.create(orgMap.get("org1"));
+        User user1 = userService.create(userMap.get("user1"));
+        User user2 = userService.create(userMap.get("user2"));
+        organizationService.addChildren(org1.getId(), Sets.newHashSet(user1.getId(), user2.getId()));
+        Assert.assertEquals(Sets.newHashSet(user1, user2), organizationService.getChildren(org1.getId()));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -137,5 +146,13 @@ public class OrganizationServiceImplTest extends AbstractTransactionalJUnit4Spri
         User user1 = userService.create(userMap.get("user1"));
         organizationService.addChild(org1.getId(), user1.getId());
         organizationService.addChild(org1.getId(), user1.getId());
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void addTwoParents() {
+        Organization org1 = organizationService.create(orgMap.get("org1"));
+        Organization org2 = organizationService.create(orgMap.get("org2"));
+        Organization org3 = organizationService.create(orgMap.get("org3"));
+        organizationService.addParents(org1.getId(), Sets.newHashSet(org2.getId(), org3.getId()));
     }
 }

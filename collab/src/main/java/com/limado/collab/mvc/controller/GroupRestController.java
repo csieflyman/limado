@@ -44,6 +44,8 @@ public class GroupRestController {
         }
         Group group = form.buildModel();
         group = groupService.create(group);
+        group.setParents(null);
+        group.setChildren(null);
         return ResponseEntity.status(HttpStatus.CREATED).body(group);
     }
 

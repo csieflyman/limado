@@ -6,6 +6,7 @@ package com.limado.collab.dao;
 
 import com.limado.collab.model.Party;
 
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -13,7 +14,15 @@ import java.util.UUID;
  */
 public interface PartyDao extends GenericDao<Party, UUID>, BatchProcessingDao<Party, UUID>{
 
-    void addChild(Party parent, Party child);
+    void addChild(UUID parent, UUID child);
 
-    void removeChild(Party parent, Party child);
+    void removeChild(UUID parent, UUID child);
+
+    void addChildren(UUID parent, Set<UUID> children);
+
+    void removeChildren(UUID parent, Set<UUID> children);
+
+    void addParents(UUID child, Set<UUID> parents);
+
+    void removeParents(UUID child, Set<UUID> parents);
 }

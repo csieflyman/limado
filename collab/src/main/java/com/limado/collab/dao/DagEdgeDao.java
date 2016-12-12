@@ -4,30 +4,18 @@
 package com.limado.collab.dao;
 
 
-import com.limado.collab.model.dag.DagEdge;
-import com.limado.collab.model.dag.DagVertex;
-import com.limado.collab.util.query.QueryParams;
-
 import java.io.Serializable;
-import java.util.List;
+import java.util.Set;
 
-/**
- * Reference : http://www.codeproject.com/Articles/22824/A-Model-to-Represent-Directed-Acyclic-Graphs-DAG-o
- * 
- * @author Finion Chen
- */
 public interface DagEdgeDao<VertexID extends Serializable>{
-    
-    public enum EDGE_DIRECTION { INCOMING, OUTGOING, BOTH };
 
-    boolean hasEdge(VertexID startVertex, VertexID endVertex);
+    void addEdges(VertexID startVertexId, VertexID endVertexId);
 
-    DagEdge addEdge(VertexID startVertex, VertexID endVertex);
+    void removeEdges(VertexID startVertexId, VertexID endVertexId);
 
-    void removeEdge(VertexID startVertex, VertexID endVertex);
+    void removeEdgesOfVertex(VertexID vertexId);
 
-    void removeVertex(VertexID vertex);
+    Set<VertexID> findIncomingVertices(VertexID vertexId);
 
-    List<DagVertex> findVertices(QueryParams params, EDGE_DIRECTION edgeDir);
-    
+    Set<VertexID> findOutgoingVertices(VertexID vertexId);
 }

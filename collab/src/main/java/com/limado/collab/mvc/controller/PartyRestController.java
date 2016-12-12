@@ -56,7 +56,7 @@ public class PartyRestController {
 
     @GetMapping(value = "{uuidString}/parents", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
-    public Object getParents(@PathVariable String uuidString) {
+    public Set<Party> getParents(@PathVariable String uuidString) {
         UUID uuid;
         try {
             uuid = UUID.fromString(uuidString);
@@ -70,7 +70,7 @@ public class PartyRestController {
 
     @GetMapping(value = "{uuidString}/children", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
-    public Object getChildren(@PathVariable String uuidString) {
+    public Set<Party> getChildren(@PathVariable String uuidString) {
         UUID uuid;
         try {
             uuid = UUID.fromString(uuidString);
@@ -80,6 +80,34 @@ public class PartyRestController {
         Set<Party> children = partyService.getChildren(uuid);
         removePartyRelations(children);
         return children;
+    }
+
+    @GetMapping(value = "{uuidString}/ascendants", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseBody
+    public Set<Party> getAscendants(@PathVariable String uuidString) {
+        UUID uuid;
+        try {
+            uuid = UUID.fromString(uuidString);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("invalid uuid format", e, uuidString);
+        }
+        Set<Party> ascendants = partyService.getAscendants(uuid);
+        removePartyRelations(ascendants);
+        return ascendants;
+    }
+
+    @GetMapping(value = "{uuidString}/descendants", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseBody
+    public Set<Party> getDescendants(@PathVariable String uuidString) {
+        UUID uuid;
+        try {
+            uuid = UUID.fromString(uuidString);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("invalid uuid format", e, uuidString);
+        }
+        Set<Party> descendants = partyService.getDescendants(uuid);
+        removePartyRelations(descendants);
+        return descendants;
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

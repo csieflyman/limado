@@ -8,5 +8,6 @@
         <class>com.limado.collab.model.User</class>
         <class>com.limado.collab.model.Group</class>
         <class>com.limado.collab.model.Organization</class>
+        <class>com.limado.collab.model.PartyDagEdge</class>
     </persistence-unit>
 </persistence>

@@ -4,6 +4,7 @@
 
 package com.limado.collab.service;
 
+import com.google.common.collect.Sets;
 import com.limado.collab.model.User;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,16 +43,29 @@ public class UserServiceImplTest extends AbstractTransactionalJUnit4SpringContex
 
     @Test(expected = UnsupportedOperationException.class)
     public void addChild() {
-        userService.addChild(userMap.get("user1").getId(), userMap.get("user2").getId());
+        User user1 = userService.create(userMap.get("user1"));
+        User user2 = userService.create(userMap.get("user2"));
+        userService.addChild(user1.getId(), user2.getId());
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void removeChild() {
-        userService.removeChild(userMap.get("user1").getId(), userMap.get("user2").getId());
+        User user1 = userService.create(userMap.get("user1"));
+        User user2 = userService.create(userMap.get("user2"));
+        userService.removeChild(user1.getId(), user2.getId());
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void getChildren() {
-        userService.getChildren(userMap.get("user1").getId());
+    public void addChildren() {
+        User user1 = userService.create(userMap.get("user1"));
+        User user2 = userService.create(userMap.get("user2"));
+        userService.addChildren(user1.getId(), Sets.newHashSet(user2.getId()));
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void removeChildren() {
+        User user1 = userService.create(userMap.get("user1"));
+        User user2 = userService.create(userMap.get("user2"));
+        userService.removeChildren(user1.getId(), Sets.newHashSet(user2.getId()));
     }
 }

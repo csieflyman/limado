@@ -504,7 +504,63 @@ paths:
         default:
           description: 非預期錯誤
           schema:
-            $ref: '#/definitions/Error'          
+            $ref: '#/definitions/Error'
+  /parties/{id}/ascendants:
+    get:
+      summary: 取得某個 Party 的所有祖先物件
+      description: 取得某個 Party 的所有祖先物件
+      parameters:
+        - name: id
+          in: path
+          description: party uuid
+          required: true
+          type: string
+          format: uuid
+      tags:
+        - Party
+      responses:
+        200:
+          description: party array
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Party'
+        400:
+          description: 不合法的 uuid
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: 非預期錯誤
+          schema:
+            $ref: '#/definitions/Error'
+  /parties/{id}/descendants:
+    get:
+      summary: 取得某個 Party 的所有子孫成員
+      description: 取得某個 Party 的所有子孫成員
+      parameters:
+        - name: id
+          in: path
+          description: party uuid
+          required: true
+          type: string
+          format: uuid
+      tags:
+        - Party
+      responses:
+        200:
+          description: party array
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Party'
+        400:
+          description: 不合法的 uuid
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: 非預期錯誤
+          schema:
+            $ref: '#/definitions/Error' 
   /parties/enable:
     put:
       summary: 啟用 Party

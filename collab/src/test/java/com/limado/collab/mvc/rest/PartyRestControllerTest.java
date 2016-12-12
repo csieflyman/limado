@@ -153,6 +153,9 @@ public class PartyRestControllerTest {
         Set<Party> children = getChildren(org1);
         Assert.assertEquals(Sets.newHashSet(user1, user2), children);
 
+        Assert.assertEquals(Sets.newHashSet(org1, user1, user2), getDescendants(group1));
+        Assert.assertEquals(Sets.newHashSet(group1, org1), getAscendants(user1));
+
         removeChild(group1, org1);
         removeChild(org1, user1);
         parents = getParents(org1);
@@ -161,6 +164,7 @@ public class PartyRestControllerTest {
         Assert.assertEquals(Sets.newHashSet(user2), children);
 
         // update
+        org1 = getById(org1);
         org1.setChildren(Sets.newHashSet(user1));
         org1.setParents(Sets.newHashSet(group1));
         org1.setName("org1 modified");
@@ -280,6 +284,24 @@ public class PartyRestControllerTest {
 
     private Set<Party> getParents(Party party) throws Exception {
         MvcResult result = mockMvc.perform(get(API_PATH + "/parties/" + party.getId() + "/parents").accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andReturn();
+        String responseJsonArray = result.getResponse().getContentAsString();
+        return JsonConverter.getInstance().convertInToSet(responseJsonArray, Party.class);
+    }
+
+    private Set<Party> getDescendants(Party party) throws Exception {
+        MvcResult result = mockMvc.perform(get(API_PATH + "/parties/" + party.getId() + "/descendants").accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andReturn();
+        String responseJsonArray = result.getResponse().getContentAsString();
+        return  JsonConverter.getInstance().convertInToSet(responseJsonArray, Party.class);
+    }
+
+    private Set<Party> getAscendants(Party party) throws Exception {
+        MvcResult result = mockMvc.perform(get(API_PATH + "/parties/" + party.getId() + "/ascendants").accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andReturn();

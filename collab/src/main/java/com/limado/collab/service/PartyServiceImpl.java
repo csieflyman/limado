@@ -6,6 +6,7 @@ package com.limado.collab.service;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import com.limado.collab.dao.DagEdgeDao;
 import com.limado.collab.dao.PartyDao;
 import com.limado.collab.model.Party;
 import com.limado.collab.util.query.Operator;
@@ -34,6 +35,10 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
     @Qualifier("partyDao")
     private PartyDao partyDao;
 
+    @Autowired
+    @Qualifier("partyDagEdgeDao")
+    private DagEdgeDao<UUID> dagEdgeDao;
+
     @Override
     public T create(T party) {
         Preconditions.checkArgument(party != null, "party must not be null");
@@ -44,18 +49,17 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
 
         Set<Party> parents = party.getParents();
         Set<Party> children = party.getChildren();
-        party.setParents(null);
-        party.setChildren(null);
+        party.setParents(new HashSet<>());
+        party.setChildren(new HashSet<>());
         T newParty = (T) partyDao.create(party);
 
-        if(parents != null) {
-            parents.forEach(parent -> addChild(parent.getId(), newParty.getId()));
+        if(children != null && !children.isEmpty()) {
+            addChildren(newParty.getId(), children.stream().map(Party::getId).collect(Collectors.toSet()));
         }
-        if(children != null) {
-            children.forEach(child -> addChild(newParty.getId(), child.getId()));
+        if(parents != null && !parents.isEmpty()) {
+            addParents(newParty.getId(), parents.stream().map(Party::getId).collect(Collectors.toSet()));
         }
-        newParty.setParents(parents);
-        newParty.setChildren(children);
+
         return newParty;
     }
 
@@ -64,32 +68,37 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         Preconditions.checkArgument(party != null, "party must not be null");
         Preconditions.checkArgument(party.getId() != null, "party id must not be null");
 
-        Party persistentParty = getById(party.getId(), Party.RELATION_PARENT, Party.RELATION_CHILDREN);
-        if(!party.getIdentity().equals(persistentParty.getIdentity()) && checkExist(party.getType(), party.getIdentity())) {
+        Party oldParty = getById(party.getId(), Party.RELATION_PARENT, Party.RELATION_CHILDREN);
+        if(!party.getIdentity().equals(oldParty.getIdentity()) && checkExist(party.getType(), party.getIdentity())) {
             throw new IllegalArgumentException(String.format("identity %s must be unique of the type %s", party.getIdentity(), party.getType()));
         }
 
-        if(party.getChildren() == null) {
-            party.setChildren(persistentParty.getChildren());
-        }
-        else {
-            Collection<Party> addChildren = CollectionUtils.subtract(party.getChildren(), persistentParty.getChildren());
-            Collection<Party> removeChildren = CollectionUtils.subtract(persistentParty.getChildren(), party.getChildren());
-            addChildren.forEach(child -> addChild(party.getId(), child.getId()));
-            removeChildren.forEach(child -> removeChild(party.getId(), child.getId()));
-        }
-
-        if(party.getParents() == null) {
-            party.setParents(persistentParty.getParents());
-        }
-        else {
-            Collection<Party> addParents = CollectionUtils.subtract(party.getParents(), persistentParty.getParents());
-            Collection<Party> removeParents = CollectionUtils.subtract(persistentParty.getParents(), party.getParents());
-            addParents.forEach(parent -> addChild(parent.getId(), party.getId()));
-            removeParents.forEach(parent -> removeChild(parent.getId(), party.getId()));
-        }
-
+        Set<Party> parents = party.getParents();
+        Set<Party> children = party.getChildren();
+        party.setChildren(oldParty.getChildren());
+        party.setParents(oldParty.getParents());
         partyDao.update(party);
+
+        if(children != null) {
+            Collection<Party> addChildren = CollectionUtils.subtract(children, oldParty.getChildren());
+            Collection<Party> removeChildren = CollectionUtils.subtract(oldParty.getChildren(), children);
+            if(!addChildren.isEmpty()) {
+                addChildren(party.getId(), new HashSet<>(addChildren).stream().map(Party::getId).collect(Collectors.toSet()));
+            }
+            if(!removeChildren.isEmpty()) {
+                removeChildren(party.getId(), new HashSet<>(removeChildren).stream().map(Party::getId).collect(Collectors.toSet()));
+            }
+        }
+        if(parents != null) {
+            Collection<Party> addParents = CollectionUtils.subtract(parents, oldParty.getParents());
+            Collection<Party> removeParents = CollectionUtils.subtract(oldParty.getParents(), parents);
+            if(!addParents.isEmpty()) {
+                addParents(party.getId(), new HashSet<>(addParents).stream().map(Party::getId).collect(Collectors.toSet()));
+            }
+            if(!removeParents.isEmpty()) {
+                removeParents(party.getId(), new HashSet<>(removeParents).stream().map(Party::getId).collect(Collectors.toSet()));
+            }
+        }
     }
 
     @Override
@@ -154,12 +163,13 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         Preconditions.checkArgument(id != null, "party id must not be null");
 
         Party party = getById(id, Party.RELATION_PARENT, Party.RELATION_CHILDREN);
-        if(party.getChildren() != null) {
-            party.getChildren().forEach(child -> removeChild(party, child));
+        if(party.getChildren() != null && !party.getChildren().isEmpty()) {
+            partyDao.removeChildren(party.getId(), party.getChildren().stream().map(Party::getId).collect(Collectors.toSet()));
         }
-        if(party.getParents() != null) {
-            party.getParents().forEach(parent -> removeChild(parent, party));
+        if(party.getParents() != null && !party.getParents().isEmpty()) {
+            partyDao.removeParents(party.getId(), party.getParents().stream().map(Party::getId).collect(Collectors.toSet()));
         }
+        dagEdgeDao.removeEdgesOfVertex(id);
         partyDao.delete(party);
     }
 
@@ -172,12 +182,13 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         params.setFetchRelations(Sets.newHashSet(Party.RELATION_PARENT, Party.RELATION_CHILDREN));
         List<Party> parties = find(params);
         for (Party party: parties) {
-            if(party.getChildren() != null) {
-                party.getChildren().forEach(child -> removeChild(party, child));
+            if(party.getChildren() != null && !party.getChildren().isEmpty()) {
+                partyDao.removeChildren(party.getId(), party.getChildren().stream().map(Party::getId).collect(Collectors.toSet()));
             }
-            if(party.getParents() != null) {
-                party.getParents().forEach(parent -> removeChild(parent, party));
+            if(party.getParents() != null && !party.getParents().isEmpty()) {
+                partyDao.removeParents(party.getId(), party.getParents().stream().map(Party::getId).collect(Collectors.toSet()));
             }
+            dagEdgeDao.removeEdgesOfVertex(party.getId());
         }
         partyDao.batchDeleteById(parties.stream().map(Party::getId).collect(Collectors.toSet()));
     }
@@ -217,16 +228,46 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
     public Set<Party> getParents(UUID id) {
         Preconditions.checkArgument(id != null, "party must not be null");
 
-        Party child = getById(id, Party.RELATION_PARENT);
-        return child.getParents() == null ? Collections.emptySet() : child.getParents();
+        QueryParams params = new QueryParams();
+        params.addPredicate(new Predicate("children.id", Operator.EQ, id));
+        List<Party> parents = find(params);
+        return new HashSet<>(parents);
     }
 
     @Override
     public Set<Party> getChildren(UUID id) {
         Preconditions.checkArgument(id != null, "party must not be null");
 
-        Party parent = getById(id, Party.RELATION_CHILDREN);
-        return parent.getChildren() == null ? Collections.emptySet() : parent.getChildren();
+        QueryParams params = new QueryParams();
+        params.addPredicate(new Predicate("parents.id", Operator.EQ, id));
+        List<Party> children = find(params);
+        return new HashSet<>(children);
+    }
+
+    @Override
+    public Set<Party> getAscendants(UUID id) {
+        Preconditions.checkArgument(id != null, "id must not be null");
+
+        Set ascendantIds = dagEdgeDao.findIncomingVertices(id);
+        if(ascendantIds.isEmpty())
+            return new HashSet<>();
+        QueryParams params = new QueryParams();
+        params.addPredicate(new Predicate("id", Operator.IN, ascendantIds));
+        Set<Party> ascendants = new HashSet<>(find(params));
+        return ascendants;
+    }
+
+    @Override
+    public Set<Party> getDescendants(UUID id) {
+        Preconditions.checkArgument(id != null, "id must not be null");
+
+        Set descendantIds = dagEdgeDao.findOutgoingVertices(id);
+        if(descendantIds.isEmpty())
+            return new HashSet<>();
+        QueryParams params = new QueryParams();
+        params.addPredicate(new Predicate("id", Operator.IN, descendantIds));
+        Set<Party> descendants = new HashSet<>(find(params));
+        return descendants;
     }
 
     @Override
@@ -234,14 +275,8 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         Preconditions.checkArgument(parentId != null, "parentId must not be null");
         Preconditions.checkArgument(childId != null, "childId must not be null");
 
-        Party persistentParent = getById(parentId, Party.RELATION_CHILDREN);
-        // hibernate will fetch child's parents to validate parent-child relationship
-        Party persistentChild = getById(childId, Party.RELATION_PARENT);
-        if(persistentParent.getChildren() != null && persistentParent.getChildren().contains(persistentChild)) {
-            throw new IllegalArgumentException(String.format("child %s is already a child of %s", persistentChild, persistentParent));
-        }
-
-        addChild(persistentParent, persistentChild);
+        partyDao.addChild(parentId, childId);
+        dagEdgeDao.addEdges(parentId, childId);
     }
 
     @Override
@@ -249,21 +284,52 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         Preconditions.checkArgument(parentId != null, "parentId must not be null");
         Preconditions.checkArgument(childId != null, "childId must not be null");
 
-        Party persistentParent = getById(parentId, Party.RELATION_CHILDREN);
-        Party persistentChild = getById(childId, Party.RELATION_PARENT);
-        if(persistentParent.getChildren() != null && !persistentParent.getChildren().contains(persistentChild)) {
-            throw new IllegalArgumentException(String.format("%s is not a child of %s", persistentChild, persistentParent));
-        }
-
-        removeChild(persistentParent, persistentChild);
+        dagEdgeDao.removeEdges(parentId, childId);
+        partyDao.removeChild(parentId, childId);
     }
 
-    protected void addChild(Party persistentParent, Party persistentChild) {
-        partyDao.addChild(persistentParent, persistentChild);
+    @Override
+    public void addChildren(UUID parentId, Set<UUID> childrenIds) {
+        Preconditions.checkArgument(parentId != null, "parentId must not be null");
+        Preconditions.checkArgument(childrenIds != null, "childrenIds must not be null");
+
+        if(childrenIds.isEmpty())
+            return;
+        partyDao.addChildren(parentId, childrenIds);
+        childrenIds.forEach(childId -> dagEdgeDao.addEdges(parentId, childId));
     }
 
-    protected void removeChild(Party persistentParent, Party persistentChild) {
-        partyDao.removeChild(persistentParent, persistentChild);
+    @Override
+    public void removeChildren(UUID parentId, Set<UUID> childrenIds) {
+        Preconditions.checkArgument(parentId != null, "parentId must not be null");
+        Preconditions.checkArgument(childrenIds != null, "childrenIds must not be null");
+
+        if (childrenIds.isEmpty())
+            return;
+        childrenIds.forEach(childId -> dagEdgeDao.removeEdges(parentId, childId));
+        partyDao.removeChildren(parentId, childrenIds);
+    }
+
+    @Override
+    public void addParents(UUID childId, Set<UUID> parentsIds) {
+        Preconditions.checkArgument(childId != null, "childId must not be null");
+        Preconditions.checkArgument(parentsIds != null, "parentsIds must not be null");
+
+        if(parentsIds.isEmpty())
+            return;
+        partyDao.addParents(childId, parentsIds);
+        parentsIds.forEach(parentId -> dagEdgeDao.addEdges(parentId, childId));
+    }
+
+    @Override
+    public void removeParents(UUID childId, Set<UUID> parentsIds) {
+        Preconditions.checkArgument(childId != null, "childId must not be null");
+        Preconditions.checkArgument(parentsIds != null, "parentsIds must not be null");
+
+        if(parentsIds.isEmpty())
+            return;
+        parentsIds.forEach(parentId -> dagEdgeDao.removeEdges(parentId, childId));
+        partyDao.removeParents(childId, parentsIds);
     }
 
     private Party getByTypeAndIdentity(String type, String identity, Collection<String> relations) {
