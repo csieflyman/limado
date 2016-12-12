@@ -28,20 +28,20 @@ public class ExceptionControllerAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity handleResourceNotFoundException(ResourceNotFoundException ex, HttpServletRequest request) {
-        log.info("[Resource Not Found] " + request.getMethod() + " ( " + request.getRequestURI() + " )");
+        log.error("[Resource Not Found] " + request.getMethod() + " ( " + request.getRequestURI() + " )", ex);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getErrorResponse());
     }
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity handleBadRequest(BadRequestException ex, HttpServletRequest request) {
-        log.info("[Bad Request] " + request.getMethod() + " ( " + request.getRequestURI() + " )");
+        log.error("[Bad Request] " + request.getMethod() + " ( " + request.getRequestURI() + " )", ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getErrorResponse());
     }
 
     //HttpMessageNotReadableException
     @ExceptionHandler(value = {IllegalArgumentException.class, UnsupportedOperationException.class, ConversionException.class})
     public ResponseEntity handleBadRequest(RuntimeException ex, HttpServletRequest request) {
-        log.info("[Bad Request] " + request.getMethod() + " ( " + request.getRequestURI() + " )");
+        log.error("[Bad Request] " + request.getMethod() + " ( " + request.getRequestURI() + " )", ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("400", ex.getMessage()));
     }
 
