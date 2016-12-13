@@ -63,4 +63,5 @@ task deployDoc {
     }
 }
 
-task deploy(dependsOn: [deployDoc, deployWar])
+task deploy(dependsOn: [updateDB, deployDoc, deployWar])
+deployWar.mustRunAfter updateDB
