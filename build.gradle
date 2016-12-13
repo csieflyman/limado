@@ -15,7 +15,7 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'maven'
     apply from: '../mvn.gradle'
-    apply from: '../gretty.plugin'
+    apply from: '../gretty.gradle'
     apply plugin: "jacoco"
     apply plugin: 'findbugs'
     apply plugin: 'pmd'
