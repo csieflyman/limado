@@ -67,7 +67,7 @@ subprojects {
         }
 
         dependencies {
-            classpath 'org.mariadb.jdbc:mariadb-java-client:1.4.6'
+            fileTree(dir: rootProject.projectDir.absolutePath + "/db", include: '*.jar')
         }
 
         URLClassLoader loader = groovy.sql.Sql.class.classLoader
@@ -108,6 +108,33 @@ subprojects {
             if ("$has_dbTasks".toBoolean()) {
                 def sql = Sql.newInstance("$test_db_url", "$test_db_user", "$test_db_password", "$test_db_driverClass")
                 executeSQL(sql, new File(project.projectDir.absolutePath + '/src/main/resources/sql/drop.sql'))
+            }
+        }
+    }
+
+    task updateDB {
+        doLast {
+            if ("$has_dbTasks".toBoolean()) {
+                ant.taskdef(name: 'dbdeploy',
+                        classname: 'com.dbdeploy.AntTarget',
+                        classpath: fileTree(dir: rootProject.projectDir.absolutePath + "/db", include: '*.jar').asPath)
+
+                ant.dbdeploy(driver: "$db_driverClass",
+                        url: "$db_url",
+                        userid: "$db_user",
+                        password: "$db_password",
+                        dbms: "mysql",
+                        dir: project.projectDir.absolutePath + '/src/main/resources/sql/patch',
+                        undooutputfile: project.projectDir.absolutePath + '/src/main/resources/sql/patch/undo_last_change.sql')
+            }
+        }
+    }
+
+    task undoDB {
+        doLast {
+            if ("$has_dbTasks".toBoolean()) {
+                def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
+                executeSQL(sql, new File(project.projectDir.absolutePath + '/src/main/resources/sql/patch/undo_last_change.sql'))
             }
         }
     }
@@ -166,7 +193,7 @@ subprojects {
 
 def executeSQL(groovy.sql.Sql sql, File file) {
     file.eachLine {
-        if (!it.startsWith("--")) {
+        if (!it.startsWith("--") && !it.isEmpty()) {
             try {
                 sql.execute(it)
             } catch (Throwable e) {
@@ -178,6 +205,25 @@ def executeSQL(groovy.sql.Sql sql, File file) {
         }
     }
 }
+
+// ========== DB ==========
+task createChangelogTable {
+    doLast {
+        def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
+        executeSQL(sql, new File(rootProject.projectDir.absolutePath + '/db/create_changelog_table.sql'))
+    }
+}
+
+task dropChangelogTable {
+    doLast {
+        def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
+        executeSQL(sql, new File(rootProject.projectDir.absolutePath + '/db/drop_changelog_table.sql'))
+    }
+}
+
+task initDB(dependsOn: [createChangelogTable, rootProject.subprojects.createTables])
+
+task cleanDB(dependsOn: [dropChangelogTable, rootProject.subprojects.dropTables])
 
 // ========== Git ==========
 task deployGitVersionFile(type:Exec) {

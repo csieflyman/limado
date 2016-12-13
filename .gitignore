@@ -4,7 +4,7 @@
 .mtj.tmp/
 
 # Package Files #
-*.jar
+#*.jar
 *.war
 *.ear
 
@@ -21,3 +21,4 @@ gradlew*
 
 gradle.properties
 version.txt
+undo_last_change.sql
