@@ -19,6 +19,7 @@ public class PartyDagEdge implements DagEdge<UUID>{
 
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
+    //MySQL bulk insertion changed behavior in hibernate 5 (https://hibernate.atlassian.net/browse/HHH-10167)
     private Long id;
 
     /**
