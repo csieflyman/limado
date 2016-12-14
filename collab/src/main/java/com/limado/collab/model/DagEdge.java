@@ -9,35 +9,35 @@ import java.io.Serializable;
 
 public interface DagEdge<VertexID extends Serializable> extends Identifiable<Long>{
 
-    public Long getId();
+    Long getId();
 
-    public void setId(Long id);
+    void setId(Long id);
 
-    public Long getEntryEdgeId();
+    Long getEntryEdgeId();
 
-    public void setEntryEdgeId(Long entryEdgeId);
+    void setEntryEdgeId(Long entryEdgeId);
 
-    public Long getDirectEdgeId();
+    Long getDirectEdgeId();
 
-    public void setDirectEdgeId(Long directEdgeId);
+    void setDirectEdgeId(Long directEdgeId);
 
-    public Long getExitEdgeId();
+    Long getExitEdgeId();
 
-    public void setExitEdgeId(Long exitEdgeId);
+    void setExitEdgeId(Long exitEdgeId);
 
-    public VertexID getStartVertexId();
+    VertexID getStartVertexId();
 
-    public void setStartVertexId(VertexID startVertexId);
+    void setStartVertexId(VertexID startVertexId);
 
-    public VertexID getEndVertexId();
+    VertexID getEndVertexId();
 
-    public void setEndVertexId(VertexID endVertexId);
+    void setEndVertexId(VertexID endVertexId);
 
-    public Integer getHops();
+    Integer getHops();
 
-    public void setHops(Integer hops);
+    void setHops(Integer hops);
 
-    public String getDagId();
+    String getDagId();
 
-    public void setDagId(String dagId);
+    void setDagId(String dagId);
 }
