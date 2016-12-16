@@ -223,6 +223,8 @@ abstract class JpaGenericDaoImpl<T extends Identifiable<ID>, ID extends Serializ
         String updateHQL = "update " + clazz.getSimpleName() + " set " + sb.toString() + " where id in (:ids)";
         int effectRows = batchExecute(updateHQL, ids, updatedValueMap);
         log.debug(updateHQL + "; effectRows = " + effectRows);
+        entityManager.flush();
+        entityManager.clear();
     }
 
     @Override

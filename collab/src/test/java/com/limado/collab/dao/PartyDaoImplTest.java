@@ -26,8 +26,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractTransactionalJUnit4SpringContextTests;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -46,9 +44,6 @@ public class PartyDaoImplTest extends AbstractTransactionalJUnit4SpringContextTe
     private Map<String, Party> userMap;
     private Map<String, Party> groupMap;
     private Map<String, Party> orgMap;
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     @Autowired
     private PartyDao partyDao;
@@ -256,9 +251,6 @@ public class PartyDaoImplTest extends AbstractTransactionalJUnit4SpringContextTe
         Map<String, Object> updatedValueMap = new HashMap<>();
         updatedValueMap.put("enabled", true);
         partyDao.batchUpdate(ids, updatedValueMap);
-        // call flush and clear due to bulk update
-        entityManager.flush();
-        entityManager.clear();
         parties = partyDao.find(new QueryParams());
         parties.forEach(party -> Assert.assertTrue(party.getEnabled()));
 
