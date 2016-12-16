@@ -17,6 +17,8 @@ import java.util.UUID;
 @Table(name="dag_edge")
 public class PartyDagEdge implements DagEdge<UUID>{
 
+    public static final String DAG_ID = "member";
+
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     //MySQL bulk insertion changed behavior in hibernate 5 (https://hibernate.atlassian.net/browse/HHH-10167)
@@ -66,7 +68,7 @@ public class PartyDagEdge implements DagEdge<UUID>{
      CAUTION: you need to make sure that the IDs of vertices from different sources never clash; the best is probably use of UUIDs
      */
     @Column(name = "dag_id")
-    private String dagId = "party";
+    private String dagId = DAG_ID;
 
     public Long getId() {
         return id;

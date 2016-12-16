@@ -37,6 +37,18 @@ abstract class JpaGenericDaoImpl<T extends Identifiable<ID>, ID extends Serializ
         clazz = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
     }
 
+    protected T newInstance() {
+        try {
+            return clazz.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected String getEntityName() {
+        return clazz.getSimpleName();
+    }
+
     @Override
     public T create(T entity) {
         entityManager.persist(entity);

@@ -15,4 +15,8 @@ import java.util.UUID;
 @Repository("partyDagEdgeDao")
 class PartyDagEdgeDaoImpl extends DagEdgeDaoImpl<PartyDagEdge, UUID> {
 
+    @Override
+    protected String getDagId() {
+        return PartyDagEdge.DAG_ID;
+    }
 }

@@ -21,6 +21,8 @@ abstract class DagEdgeDaoImpl<DagEdgeType extends DagEdge<VertexID>, VertexID ex
 
     private static final Logger log = LogManager.getLogger(DagEdgeDaoImpl.class);
 
+    abstract protected String getDagId();
+
     @Override
     public void addEdges(VertexID startVertexId, VertexID endVertexId) {
         Preconditions.checkArgument(startVertexId != null, "Argument [startVertexId] can not be null.");
@@ -43,7 +45,7 @@ abstract class DagEdgeDaoImpl<DagEdgeType extends DagEdge<VertexID>, VertexID ex
         }
 
         // insert direct edge
-        DagEdge edge = newDagEdge();
+        DagEdgeType edge = newDagEdge();
         edge.setStartVertexId(startVertexId);
         edge.setEndVertexId(endVertexId);
         entityManager.persist(edge);
@@ -57,10 +59,10 @@ abstract class DagEdgeDaoImpl<DagEdgeType extends DagEdge<VertexID>, VertexID ex
 
         //step 1: A's incoming edges to B
         StringBuilder insertSQL1 = new StringBuilder();
-        insertSQL1.append("insert into ").append(getDagEdgeEntityName()).append("(entryEdgeId, directEdgeId, exitEdgeId, startVertexId, endVertexId, hops, dagId) ")
+        insertSQL1.append("insert into ").append(getEntityName()).append("(entryEdgeId, directEdgeId, exitEdgeId, startVertexId, endVertexId, hops, dagId) ")
                 .append("select id, ").append(id).append("L, ").append(id).append("L, startVertexId, ")
                 .append(":endVertexId, (hops + 1), :dagId ")
-                .append("from ").append(getDagEdgeEntityName()).append(" where endVertexId = :startVertexId");
+                .append("from ").append(getEntityName()).append(" where endVertexId = :startVertexId");
         log.debug(insertSQL1.toString());
         Query query = entityManager.createQuery(insertSQL1.toString());
         query.setParameter("startVertexId", startVertexId);
@@ -70,10 +72,10 @@ abstract class DagEdgeDaoImpl<DagEdgeType extends DagEdge<VertexID>, VertexID ex
 
         //step 2: A to B's outgoing edges
         StringBuilder insertSQL2 = new StringBuilder();
-        insertSQL2.append("insert into ").append(getDagEdgeEntityName()).append("(entryEdgeId, directEdgeId, exitEdgeId, startVertexId, endVertexId, hops, dagId) ")
+        insertSQL2.append("insert into ").append(getEntityName()).append("(entryEdgeId, directEdgeId, exitEdgeId, startVertexId, endVertexId, hops, dagId) ")
             .append("select ").append(id).append("L, ").append(id).append("L, id, :startVertexId, ")
             .append("endVertexId, (hops + 1), :dagId ")
-                .append("from ").append(getDagEdgeEntityName()).append(" where startVertexId = :endVertexId");
+                .append("from ").append(getEntityName()).append(" where startVertexId = :endVertexId");
         log.debug(insertSQL2.toString());
         query = entityManager.createQuery(insertSQL2.toString());
         query.setParameter("startVertexId", startVertexId);
@@ -83,9 +85,9 @@ abstract class DagEdgeDaoImpl<DagEdgeType extends DagEdge<VertexID>, VertexID ex
 
         // step 3: A’s incoming edges to end vertex of B's outgoing edges
         StringBuilder insertSQL3 = new StringBuilder();
-        insertSQL3.append("insert into ").append(getDagEdgeEntityName()).append("(entryEdgeId, directEdgeId, exitEdgeId, startVertexId, endVertexId, hops, dagId) ")
+        insertSQL3.append("insert into ").append(getEntityName()).append("(entryEdgeId, directEdgeId, exitEdgeId, startVertexId, endVertexId, hops, dagId) ")
             .append("select edgeA.id, ").append(id).append("L, edgeB.id, edgeA.startVertexId, edgeB.endVertexId, (edgeA.hops + edgeB.hops + 1), :dagId ")
-            .append("from ").append(getDagEdgeEntityName()).append(" edgeA, ").append(getDagEdgeEntityName()).append(" edgeB ")
+            .append("from ").append(getEntityName()).append(" edgeA, ").append(getEntityName()).append(" edgeB ")
             .append("where edgeA.endVertexId = :startVertexId ")
             .append("and edgeB.startVertexId = :endVertexId");
         log.debug(insertSQL3.toString());
@@ -106,31 +108,38 @@ abstract class DagEdgeDaoImpl<DagEdgeType extends DagEdge<VertexID>, VertexID ex
         params.addPredicate(new Predicate("startVertexId", Operator.EQ, startVertexId));
         params.addPredicate(new Predicate("endVertexId", Operator.EQ, endVertexId));
         params.addPredicate(new Predicate("hops", Operator.EQ, 0));
+        params.addPredicate(new Predicate("dagId", Operator.EQ, getDagId()));
         List<DagEdgeType> edges = find(params);
         if (edges.isEmpty()) {
             throw new IllegalArgumentException(String.format("edge from %s to %s does not exist", startVertexId, endVertexId));
         }
         else {
-            DagEdge edge = edges.get(0);
-            removeEdges(edge);
+            DagEdgeType edge = edges.get(0);
+            removeEdges(edge.getId());
         }
     }
 
     @Override
     public void removeEdgesOfVertex(VertexID vertexId) {
         Preconditions.checkArgument(vertexId != null, "Argument [vertex] can not be null.");
-        QueryParams params = new QueryParams();
-        params.addPredicate(new Predicate("startVertexId", Operator.EQ, vertexId));
-        params.addPredicate(new Predicate("endVertexId", Operator.EQ, vertexId));
-        params.setPredicatesDisjunction(true);
-        List<DagEdgeType> edges = find(params);
-        edges.forEach(edge -> removeEdges(edge));
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("select id from ").append(getEntityName())
+                .append(" where (startVertexId = :startVertexId or endVertexId = :endVertexId) ")
+                .append("and dagId = :dagId ");
+        Query query = entityManager.createQuery(sb.toString());
+        query.setParameter("startVertexId", vertexId);
+        query.setParameter("endVertexId", vertexId);
+        query.setParameter("dagId", getDagId());
+        List<Long> edgeIds = query.getResultList();
+        edgeIds.forEach(edgeId -> removeEdges(edgeId));
     }
 
     @Override
     public Set<VertexID> findIncomingVertices(VertexID vertexId) {
         QueryParams params = new QueryParams();
         params.addPredicate(new Predicate("endVertexId", Operator.EQ, vertexId));
+        params.addPredicate(new Predicate("dagId", Operator.EQ, getDagId()));
         List<DagEdgeType> edges = find(params);
         Set<VertexID> incomingVertexIds = edges.stream().map(DagEdge::getStartVertexId).collect(Collectors.toSet());
         log.debug(String.format("incoming vertices of %s: %s", vertexId, incomingVertexIds));
@@ -141,38 +150,33 @@ abstract class DagEdgeDaoImpl<DagEdgeType extends DagEdge<VertexID>, VertexID ex
     public Set<VertexID> findOutgoingVertices(VertexID vertexId) {
         QueryParams params = new QueryParams();
         params.addPredicate(new Predicate("startVertexId", Operator.EQ, vertexId));
+        params.addPredicate(new Predicate("dagId", Operator.EQ, getDagId()));
         List<DagEdgeType> edges = find(params);
         Set<VertexID> outgoingVertices = edges.stream().map(DagEdge::getEndVertexId).collect(Collectors.toSet());
         log.debug(String.format("outgoing vertices of %s: %s", vertexId, outgoingVertices));
         return outgoingVertices;
     }
 
-    protected DagEdge newDagEdge() {
-        try {
-            return clazz.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+    protected DagEdgeType newDagEdge() {
+        DagEdgeType edge = super.newInstance();
+        edge.setDagId(getDagId());
+        return edge;
     }
 
-    private String getDagEdgeEntityName() {
-        return clazz.getSimpleName();
-    }
-
-    private void removeEdges(DagEdge edge) {
-        log.debug("remove edge : " + edge.getId());
+    private void removeEdges(Long edgeId) {
+        log.debug("remove edge : " + edgeId);
         //step 1: rows that were originally inserted with the first AddEdge call for this direct edge
-        Query query = entityManager.createQuery("from " + getDagEdgeEntityName() + " where directEdgeId = :id");
-        query.setParameter("id", edge.getId());
-        List<DagEdge> directEdges = query.getResultList();
+        Query query = entityManager.createQuery("from " + getEntityName() + " where directEdgeId = :id");
+        query.setParameter("id", edgeId);
+        List<DagEdgeType> directEdges = query.getResultList();
 
         Set<Long> removeEdgeIds = directEdges.stream().map(DagEdge::getId).collect(Collectors.toSet());
-        removeEdgeIds.add(edge.getId());
+        removeEdgeIds.add(edgeId);
         log.debug("removeEdgeIds = " + removeEdgeIds);
 
         //step 2: scan and find all dependent rows that are inserted afterwards
         StringBuilder sb = new StringBuilder();
-        sb.append("select id from ").append(getDagEdgeEntityName()).append(" where hops > 0 ")
+        sb.append("select id from ").append(getEntityName()).append(" where hops > 0 ")
                 .append("and (entryEdgeId in :ids or exitEdgeId in :ids) ")
                 .append("and id not in :ids");
         while (true) {
