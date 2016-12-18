@@ -9,5 +9,6 @@
         <class>com.limado.collab.model.Group</class>
         <class>com.limado.collab.model.Organization</class>
         <class>com.limado.collab.model.PartyDagEdge</class>
+        <class>com.limado.collab.model.PartyIntervalTreeNode</class>
     </persistence-unit>
 </persistence>
