@@ -74,6 +74,9 @@ abstract class IntervalTreeDaoImpl<NodeType extends IntervalTreeNode<NodeIdType>
         Preconditions.checkArgument(nodeId != null, "nodeId must not be null");
 
         NodeType node = getNode(nodeId);
+        if(node == null)
+            return;
+
         delete(node);
     }
 
