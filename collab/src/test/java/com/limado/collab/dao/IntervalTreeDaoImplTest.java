@@ -20,8 +20,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractTransactionalJUnit4SpringContextTests;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,9 +32,6 @@ import java.util.stream.Collectors;
 public class IntervalTreeDaoImplTest extends AbstractTransactionalJUnit4SpringContextTests {
 
     private static final Logger log = LogManager.getLogger(IntervalTreeDaoImplTest.class);
-
-    @PersistenceContext
-    EntityManager entityManager;
 
     @Autowired
     @Qualifier("partyIntervalTreeDao")
