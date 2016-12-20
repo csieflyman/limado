@@ -31,9 +31,7 @@ public interface PartyService<T extends Party> {
 
     boolean checkExist(String type, String identity);
 
-    void deleteById(UUID id);
-
-    void deleteByIds(Collection<UUID> ids);
+    void delete(T party);
 
     List<Party> find(QueryParams queryParams);
 
@@ -51,15 +49,15 @@ public interface PartyService<T extends Party> {
 
     Set<Party> getDescendants(UUID id);
 
-    void addChild(UUID parentId, UUID childId);
+    void addChild(T parent, Party child);
 
-    void removeChild(UUID parentId, UUID childId);
+    void removeChild(T parent, Party child);
 
-    void addChildren(UUID parentId, Set<UUID> childrenIds);
+    void addChildren(T parent, Set<Party> children);
 
-    void removeChildren(UUID parentId, Set<UUID> childrenIds);
+    void removeChildren(T parent, Set<Party> children);
 
-    void addParents(UUID childId, Set<UUID> parentsIds);
+    void addParents(T child, Set<Party> parents);
 
-    void removeParents(UUID childId, Set<UUID> parentsIds);
+    void removeParents(T child, Set<Party> parents);
 }

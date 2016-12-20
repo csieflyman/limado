@@ -5,6 +5,7 @@
 package com.limado.collab.service;
 
 import com.limado.collab.model.Organization;
+import com.limado.collab.model.Party;
 
 import java.util.UUID;
 
@@ -13,5 +14,5 @@ import java.util.UUID;
  */
 public interface OrganizationService extends PartyService<Organization>{
 
-    void movePartyToOrganization(UUID partyId, UUID organizationId);
+    void movePartyToOrganization(Party child, Organization organization);
 }

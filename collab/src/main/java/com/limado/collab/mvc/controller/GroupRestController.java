@@ -5,6 +5,7 @@
 package com.limado.collab.mvc.controller;
 
 import com.limado.collab.model.Group;
+import com.limado.collab.model.Party;
 import com.limado.collab.mvc.exception.BadRequestException;
 import com.limado.collab.mvc.form.GroupForm;
 import com.limado.collab.mvc.validator.PartyFormValidator;
@@ -78,7 +79,13 @@ public class GroupRestController {
         }catch (IllegalArgumentException e) {
             throw new BadRequestException(String.format("invalid uuid format: %s, %s", parentId, childId) , e);
         }
-        groupService.addChild(parentUUID, childUUID);
+
+        Party group = groupService.getById(parentUUID, Party.RELATION_PARENT);
+        if(group != null && !group.getType().equals(Group.TYPE)) {
+            throw new BadRequestException(String.format("%s is not a group", parentUUID));
+        }
+        Party child = groupService.getById(childUUID);
+        groupService.addChild((Group) group, child);
     }
 
     @DeleteMapping("{parentId}/child/{childId}")
@@ -91,6 +98,12 @@ public class GroupRestController {
         }catch (IllegalArgumentException e) {
             throw new BadRequestException(String.format("invalid uuid format: %s, %s", parentId, childId) , e);
         }
-        groupService.removeChild(parentUUID, childUUID);
+
+        Party group = groupService.getById(parentUUID, Party.RELATION_PARENT);
+        if(group != null && !group.getType().equals(Group.TYPE)) {
+            throw new BadRequestException(String.format("%s is not a group", parentUUID));
+        }
+        Party child = groupService.getById(childUUID);
+        groupService.removeChild((Group) group, child);
     }
 }

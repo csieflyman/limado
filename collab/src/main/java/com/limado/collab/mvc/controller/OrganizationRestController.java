@@ -4,7 +4,9 @@
 
 package com.limado.collab.mvc.controller;
 
+import com.limado.collab.model.Group;
 import com.limado.collab.model.Organization;
+import com.limado.collab.model.Party;
 import com.limado.collab.mvc.exception.BadRequestException;
 import com.limado.collab.mvc.form.OrganizationForm;
 import com.limado.collab.mvc.validator.PartyFormValidator;
@@ -78,7 +80,13 @@ public class OrganizationRestController {
         }catch (IllegalArgumentException e) {
             throw new BadRequestException(String.format("invalid uuid format: %s, %s", parentId, childId) , e);
         }
-        organizationService.addChild(parentUUID, childUUID);
+
+        Party organization = organizationService.getById(parentUUID, Party.RELATION_PARENT);
+        if(organization != null && !organization.getType().equals(Organization.TYPE)) {
+            throw new BadRequestException(String.format("%s is not a organization", parentUUID));
+        }
+        Party child = organizationService.getById(childUUID);
+        organizationService.addChild((Organization) organization, child);
     }
 
     @DeleteMapping("{parentId}/child/{childId}")
@@ -91,6 +99,12 @@ public class OrganizationRestController {
         }catch (IllegalArgumentException e) {
             throw new BadRequestException(String.format("invalid uuid format: %s, %s", parentId, childId) , e);
         }
-        organizationService.removeChild(parentUUID, childUUID);
+
+        Party organization = organizationService.getById(parentUUID, Party.RELATION_PARENT);
+        if(organization != null && !organization.getType().equals(Organization.TYPE)) {
+            throw new BadRequestException(String.format("%s is not a organization", parentUUID));
+        }
+        Party child = organizationService.getById(childUUID);
+        organizationService.removeChild((Organization) organization, child);
     }
 }

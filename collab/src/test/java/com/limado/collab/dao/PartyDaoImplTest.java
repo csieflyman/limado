@@ -264,7 +264,7 @@ public class PartyDaoImplTest extends AbstractTransactionalJUnit4SpringContextTe
         parties = partyDao.find(new QueryParams());
         parties.forEach(party -> Assert.assertNotNull(party.getId()));
 
-        // deleteById
+        // delete
         ids = parties.stream().map(Party::getId).collect(Collectors.toSet());
         partyDao.batchDeleteById(ids);
         parties = partyDao.find(new QueryParams());
@@ -284,19 +284,19 @@ public class PartyDaoImplTest extends AbstractTransactionalJUnit4SpringContextTe
         Party org3 = orgMap.get("org3");
         Party group3 = groupMap.get("group3");
 
-        partyDao.addChildren(org1.getId(), Sets.newHashSet(user1.getId(), user2.getId()));
+        partyDao.addChildren(org1, Sets.newHashSet(user1, user2));
         Assert.assertEquals(Sets.newHashSet(user1, user2), getChildren(org1));
-        partyDao.addChild(org1.getId(), user3.getId());
+        partyDao.addChild(org1, user3);
         Assert.assertEquals(Sets.newHashSet(user1, user2, user3), getChildren(org1));
 
-        partyDao.removeChildren(org1.getId(), Sets.newHashSet(user1.getId(), user2.getId()));
+        partyDao.removeChildren(org1, Sets.newHashSet(user1, user2));
         Assert.assertEquals(Sets.newHashSet(user3), getChildren(org1));
-        partyDao.removeChild(org1.getId(), user3.getId());
+        partyDao.removeChild(org1, user3);
         Assert.assertEquals(new HashSet<>(), getChildren(org1));
 
-        partyDao.addParents(user3.getId(), Sets.newHashSet(org3.getId(), group3.getId()));
+        partyDao.addParents(user3, Sets.newHashSet(org3, group3));
         Assert.assertEquals(Sets.newHashSet(group3, org3), getParents(user3));
-        partyDao.removeParents(user3.getId(), Sets.newHashSet(org3.getId(), group3.getId()));
+        partyDao.removeParents(user3, Sets.newHashSet(org3, group3));
         Assert.assertEquals(new HashSet<>(), getParents(user3));
     }
 
@@ -333,19 +333,19 @@ public class PartyDaoImplTest extends AbstractTransactionalJUnit4SpringContextTe
         Party group2 = groupMap.get("group2");
         Party group3 = groupMap.get("group3");
 
-        partyDao.addChild(group1.getId(), group2.getId());
-        partyDao.addChild(group1.getId(), group3.getId());
-        partyDao.addChild(group1.getId(), org1.getId());
-        partyDao.addChild(group2.getId(), org2.getId());
-        partyDao.addChild(group3.getId(), org3.getId());
-        partyDao.addChild(group1.getId(), user1.getId());
-        partyDao.addChild(group2.getId(), user2.getId());
-        partyDao.addChild(group3.getId(), user3.getId());
+        partyDao.addChild(group1, group2);
+        partyDao.addChild(group1, group3);
+        partyDao.addChild(group1, org1);
+        partyDao.addChild(group2, org2);
+        partyDao.addChild(group3, org3);
+        partyDao.addChild(group1, user1);
+        partyDao.addChild(group2, user2);
+        partyDao.addChild(group3, user3);
 
-        partyDao.addChild(org1.getId(), org2.getId());
-        partyDao.addChild(org2.getId(), org3.getId());
-        partyDao.addChild(org1.getId(), user1.getId());
-        partyDao.addChild(org2.getId(), user2.getId());
-        partyDao.addChild(org3.getId(), user3.getId());
+        partyDao.addChild(org1, org2);
+        partyDao.addChild(org2, org3);
+        partyDao.addChild(org1, user1);
+        partyDao.addChild(org2, user2);
+        partyDao.addChild(org3, user3);
     }
 }

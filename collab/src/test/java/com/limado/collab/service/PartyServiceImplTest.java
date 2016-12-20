@@ -25,8 +25,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractTransactionalJUnit4SpringContextTests;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -97,7 +95,7 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
         Assert.assertEquals("user1 modified", user.getName());
 
         // delete
-        partyService.deleteById(user.getId());
+        partyService.delete(user);
         Assert.assertFalse(partyService.checkExist(user.getType(), user.getIdentity()));
     }
 
@@ -147,8 +145,8 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
         org1 = partyService.create(org1);
         org2 = partyService.create(org2);
         user1 = partyService.create(user1);
-        partyService.addChild(org1.getId(), org2.getId());
-        partyService.addChild(org2.getId(), user1.getId());
+        partyService.addChild(org1, org2);
+        partyService.addChild(org2, user1);
         Assert.assertEquals(Sets.newHashSet(org1), partyService.getParents(org2.getId()));
         Assert.assertEquals(Sets.newHashSet(user1), partyService.getChildren(org2.getId()));
 
@@ -179,8 +177,8 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
         org3 = partyService.create(org3);
         user1 = partyService.create(user1);
         user2 = partyService.create(user2);
-        partyService.addChild(org1.getId(), org2.getId());
-        partyService.addChild(org2.getId(), user1.getId());
+        partyService.addChild(org1, org2);
+        partyService.addChild(org2, user1);
         Assert.assertEquals(Sets.newHashSet(org1), partyService.getParents(org2.getId()));
         Assert.assertEquals(Sets.newHashSet(user1), partyService.getChildren(org2.getId()));
 
@@ -204,8 +202,8 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
         Party org1 = partyService.create(orgMap.get("org1"));
         Party org2 = partyService.create(orgMap.get("org2"));
         Party org3 = partyService.create(orgMap.get("org3"));
-        partyService.addChild(org1.getId(), org2.getId());
-        partyService.addChild(org2.getId(), org3.getId());
+        partyService.addChild(org1, org2);
+        partyService.addChild(org2, org3);
         org2 = partyService.getById(org2.getId(), Party.RELATION_PARENT, Party.RELATION_CHILDREN);
         Assert.assertNotNull(org2);
         log.debug(org2.getParents());
@@ -221,7 +219,7 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
     }
 
     @Test
-    public void deleteById() {
+    public void delete() {
         Party org1 = orgMap.get("org1");
         Party org2 = orgMap.get("org2");
         Party user1 = userMap.get("user1");
@@ -229,32 +227,13 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
         org1 = partyService.create(org1);
         org2 = partyService.create(org2);
         user1 = partyService.create(user1);
-        partyService.addChild(org1.getId(), org2.getId());
-        partyService.addChild(org2.getId(), user1.getId());
+        partyService.addChild(org1, org2);
+        partyService.addChild(org2, user1);
 
-        partyService.deleteById(org2.getId());
+        partyService.delete(org2);
         Assert.assertFalse(partyService.checkExist(org2.getType(), org2.getIdentity()));
         Assert.assertEquals(partyService.getChildren(org1.getId()), Collections.emptySet());
         Assert.assertEquals(partyService.getParents(user1.getId()), Collections.emptySet());
-    }
-
-    @Test
-    public void deleteByIds() {
-        Party org1 = orgMap.get("org1");
-        Party user1 = userMap.get("user1");
-        Party user2 = userMap.get("user2");
-        Party user3 = userMap.get("user3");
-
-        org1 = partyService.create(org1);
-        Set<UUID> userIds = userMap.values().stream().map(user -> partyService.create(user)).map(Party::getId).collect(Collectors.toSet());
-        partyService.addChild(org1.getId(), user1.getId());
-        partyService.addChild(org1.getId(), user2.getId());
-        partyService.addChild(org1.getId(), user3.getId());
-
-        partyService.deleteByIds(userIds);
-        List<Party> parties = partyService.find(new QueryParams());
-        Assert.assertEquals(Sets.newHashSet(org1), new HashSet<>(parties));
-        Assert.assertEquals(partyService.getChildren(org1.getId()), Collections.emptySet());
     }
 
     @Test
@@ -295,10 +274,10 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
         Party group2 = partyService.create(groupMap.get("group2"));
 
         // add
-        partyService.addChild(org1.getId(), user1.getId());
-        partyService.addChildren(group1.getId(), Sets.newHashSet(org1.getId(), user1.getId()));
-        partyService.addChildren(group2.getId(), Sets.newHashSet(org1.getId(), user1.getId()));
-        partyService.addParents(user2.getId(), Sets.newHashSet(org1.getId(), group1.getId(), group2.getId()));
+        partyService.addChild(org1, user1);
+        partyService.addChildren(group1, Sets.newHashSet(org1, user1));
+        partyService.addChildren(group2, Sets.newHashSet(org1, user1));
+        partyService.addParents(user2, Sets.newHashSet(org1, group1, group2));
 
         // retrieve children
         Set<Party> children = partyService.getChildren(org1.getId());
@@ -312,15 +291,15 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
         Assert.assertEquals(Sets.newHashSet(group1, group2), parents);
 
         // remove
-        partyService.removeChild(org1.getId(), user1.getId());
+        partyService.removeChild(org1, user1);
         children = partyService.getChildren(org1.getId());
         Assert.assertFalse(children.contains(user1));
         parents = partyService.getParents(user1.getId());
         Assert.assertFalse(parents.contains(org1));
 
-        partyService.removeChildren(group1.getId(), Sets.newHashSet(org1.getId(), user1.getId()));
+        partyService.removeChildren(group1, Sets.newHashSet(org1, user1));
         Assert.assertEquals(Sets.newHashSet(user2), partyService.getChildren(group1.getId()));
-        partyService.removeParents(user2.getId(), Sets.newHashSet(group1.getId(), group2.getId()));
+        partyService.removeParents(user2, Sets.newHashSet(group1, group2));
         Assert.assertEquals(Sets.newHashSet(org1), partyService.getParents(user2.getId()));
     }
 
@@ -332,9 +311,9 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
         Party group1 = partyService.create(groupMap.get("group1"));
         Party group2 = partyService.create(groupMap.get("group2"));
 
-        partyService.addChildren(group1.getId(), Sets.newHashSet(org1.getId(), group2.getId()));
-        partyService.addChildren(group2.getId(), Sets.newHashSet(user1.getId(), user2.getId()));
-        partyService.addChildren(org1.getId(), Sets.newHashSet(user1.getId(), user2.getId()));
+        partyService.addChildren(group1, Sets.newHashSet(org1, group2));
+        partyService.addChildren(group2, Sets.newHashSet(user1, user2));
+        partyService.addChildren(org1, Sets.newHashSet(user1, user2));
 
         Assert.assertEquals(Sets.newHashSet(org1, group2, user1, user2), partyService.getDescendants(group1.getId()));
         Assert.assertEquals(Sets.newHashSet(org1, group2, group1), partyService.getAscendants(user1.getId()));

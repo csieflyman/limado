@@ -14,15 +14,15 @@ import java.util.UUID;
  */
 public interface PartyDao extends GenericDao<Party, UUID>, BatchProcessingDao<Party, UUID>{
 
-    void addChild(UUID parent, UUID child);
+    void addChild(Party parent, Party child);
 
-    void removeChild(UUID parent, UUID child);
+    void removeChild(Party parent, Party child);
 
-    void addChildren(UUID parent, Set<UUID> children);
+    void addChildren(Party parent, Set<Party> children);
 
-    void removeChildren(UUID parent, Set<UUID> children);
+    void removeChildren(Party parent, Set<Party> children);
 
-    void addParents(UUID child, Set<UUID> parents);
+    void addParents(Party child, Set<Party> parents);
 
-    void removeParents(UUID child, Set<UUID> parents);
+    void removeParents(Party child, Set<Party> parents);
 }
