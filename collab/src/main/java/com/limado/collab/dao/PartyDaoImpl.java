@@ -71,6 +71,7 @@ public class PartyDaoImpl extends JpaGenericDaoImpl<Party, UUID> implements Part
         if(CollectionUtils.containsAny(parent.getChildren(), children)) {
             throw new IllegalArgumentException(String.format("%s already contains some children %s", parent, children));
         }
+        children = new HashSet<>(children);
         for(Party child: children) {
             parent.addChild(child);
         }
@@ -90,6 +91,7 @@ public class PartyDaoImpl extends JpaGenericDaoImpl<Party, UUID> implements Part
         if(!CollectionUtils.isSubCollection(children, parent.getChildren())) {
             throw new IllegalArgumentException(String.format("%s doesn't contains some children %s", parent, children));
         }
+        children = new HashSet<>(children);
         for(Party child: children) {
             parent.removeChild(child);
         }
