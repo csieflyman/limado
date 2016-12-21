@@ -11,6 +11,7 @@ import com.limado.collab.model.Party;
 import com.limado.collab.model.User;
 import com.limado.collab.util.converter.json.JsonConverter;
 import com.limado.collab.util.query.QueryParams;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
@@ -19,6 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -50,6 +52,9 @@ public class PartyRestControllerTest {
     private WebApplicationContext wac;
     private MockMvc mockMvc;
     private DebugLoggingResultHandler loggingResultHandler = new DebugLoggingResultHandler();
+    @Autowired
+    private OpenEntityManagerInViewFilter openEntityManagerInViewFilter;
+
     private static final String API_PATH = "/api/v1";
     private static Map<String, String> typePathMap = new HashMap<>();
     private static Map<String, Class> typeClassMap = new HashMap<>();
@@ -69,7 +74,7 @@ public class PartyRestControllerTest {
 
     @Before
     public void setup() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
+        mockMvc = MockMvcBuilders.webAppContextSetup(wac).addFilters(openEntityManagerInViewFilter).build();
         initTestData();
     }
 
@@ -98,7 +103,7 @@ public class PartyRestControllerTest {
         }
     }
 
-    @Test
+    //@Test
     public void testBadRequestException() throws Exception{
         User user1 = new User();
         user1.setIdentity("123");
@@ -116,7 +121,7 @@ public class PartyRestControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE));
     }
 
-    @Test
+    //@Test
     public void testResourceNotFoundException() throws Exception{
         String randomId = UUID.randomUUID().toString();
         mockMvc.perform(get(API_PATH + "/parties/" + randomId).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
@@ -138,6 +143,27 @@ public class PartyRestControllerTest {
         org1 = createParty(org1);
         group1 = createParty(group1);
 
+        // findSize
+        mockMvc.perform(get(API_PATH + "/parties")
+                .accept(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .param(QueryParams.Q_ONLY_SIZE, "true"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(content().json(String.valueOf(size)));
+
+        // find with paging, sort
+        mockMvc.perform(get(API_PATH + "/parties")
+                .accept(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .param(QueryParams.Q_OFFSET, "0")
+                .param(QueryParams.Q_LIMIT, "3")
+                .param(QueryParams.Q_SORT, "-identity"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(jsonPath("$[0].identity").value("user2"))
+                .andExpect(jsonPath("$[1].identity").value("user1"))
+                .andExpect(jsonPath("$[2].identity").value("org1"))
+                .andExpect(jsonPath("$.length()").value(3));
+
         // retrieve
         user1 = getById(user1);
         org1 = getById(org1);
@@ -147,32 +173,23 @@ public class PartyRestControllerTest {
         addChild(group1, org1);
         addChild(org1, user1);
         addChild(org1, user2);
-
-        Set<Party> parents = getParents(org1);
-        Assert.assertEquals(Sets.newHashSet(group1), parents);
-        Set<Party> children = getChildren(org1);
-        Assert.assertEquals(Sets.newHashSet(user1, user2), children);
-
+        Assert.assertEquals(Sets.newHashSet(group1), getParents(org1));
+        Assert.assertEquals(Sets.newHashSet(user1, user2), getChildren(org1));
         Assert.assertEquals(Sets.newHashSet(org1, user1, user2), getDescendants(group1));
         Assert.assertEquals(Sets.newHashSet(group1, org1), getAscendants(user1));
 
-        removeChild(group1, org1);
-        removeChild(org1, user1);
-        parents = getParents(org1);
-        Assert.assertEquals(Collections.emptySet(), parents);
-        children = getChildren(org1);
-        Assert.assertEquals(Sets.newHashSet(user2), children);
+        // findById
+        mockMvc.perform(get(API_PATH + "/parties")
+                .accept(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .param(QueryParams.Q_PREDICATES, "[id = " + org1.getId() + "]")
+                .param(QueryParams.Q_FETCH_RELATIONS, Party.RELATION_PARENT + "," + Party.RELATION_CHILDREN))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andExpect(jsonPath("$[0].id").value(org1.getId().toString()))
+                .andExpect(jsonPath("$[0].parents[0].id").value(group1.getId().toString()))
+                .andExpect(jsonPath("$[0].children.length()").value(2));
 
-        // update
-        org1 = getById(org1);
-        org1.setChildren(Sets.newHashSet(user1));
-        org1.setParents(Sets.newHashSet(group1));
-        org1.setName("org1 modified");
-        String jsonObject = JsonConverter.getInstance().convertOut(org1);
-        mockMvc.perform(put(API_PATH + "/organizations/" + org1.getId()).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE).content(jsonObject))
-                .andExpect(status().isOk());
-
-        // getById with parameters
+        // getById with parents, children
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.put(QueryParams.Q_FETCH_RELATIONS, Arrays.asList(Party.RELATION_PARENT, Party.RELATION_CHILDREN));
         mockMvc.perform(get(API_PATH + "/parties/" + org1.getId())
@@ -180,66 +197,88 @@ public class PartyRestControllerTest {
                 .params(params))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(jsonPath("$.name").value("org1 modified"))
+                .andExpect(jsonPath("$.id").value(org1.getId().toString()))
                 .andExpect(jsonPath("$.parents[0].id").value(group1.getId().toString()))
-                .andExpect(jsonPath("$.children[0].id").value(user1.getId().toString()))
+                .andExpect(jsonPath("$.children.length()").value(2))
                 .andReturn();
 
-        parents = getParents(org1);
-        Assert.assertEquals(Sets.newHashSet(group1), parents);
-        children = getChildren(org1);
-        Assert.assertEquals(Sets.newHashSet(user1), children);
+        removeChild(group1, org1);
+        removeChild(org1, user1);
+        Assert.assertEquals(Collections.emptySet(), getParents(org1));
+        Assert.assertEquals(Sets.newHashSet(user2), getChildren(org1));
 
-        mockMvc.perform(get(API_PATH + "/parties")
-                .accept(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .param(QueryParams.Q_ONLY_SIZE, "true"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(content().json(String.valueOf(size)));
+        // update org
+        org1 = getById(org1);
+        org1.setChildren(Sets.newHashSet(user1));
+        org1.setParents(Sets.newHashSet(group1));
+        org1.setName("org1 modified");
+        String jsonObject = JsonConverter.getInstance().convertOut(org1);
+        mockMvc.perform(put(API_PATH + "/organizations/" + org1.getId()).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE).content(jsonObject))
+                .andExpect(status().isOk());
+        org1 = getById(org1);
+        Assert.assertEquals("org1 modified", org1.getName());
+        Assert.assertEquals(Sets.newHashSet(group1), getParents(org1));
+        Assert.assertEquals(Sets.newHashSet(user1), getChildren(org1));
 
-        mockMvc.perform(get(API_PATH + "/parties")
-                .accept(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                .param(QueryParams.Q_PREDICATES, "[id = " + org1.getId() + "]")
-                .param(QueryParams.Q_FETCH_RELATIONS, Party.RELATION_PARENT + "," + Party.RELATION_CHILDREN))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(jsonPath("$[0].parents[0].id").value(group1.getId().toString()))
-                .andExpect(jsonPath("$[0].children[0].id").value(user1.getId().toString()));
+        // update group
+        group1 = getById(group1);
+        group1.setChildren(Sets.newHashSet(user1, user2));
+        group1.setParents(Collections.emptySet());
+        group1.setName("group1 modified");
+        jsonObject = JsonConverter.getInstance().convertOut(group1);
+        mockMvc.perform(put(API_PATH + "/groups/" + group1.getId()).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE).content(jsonObject))
+                .andExpect(status().isOk());
+        group1 = getById(group1);
+        Assert.assertEquals("group1 modified", group1.getName());
+        Assert.assertEquals(Collections.emptySet(), getParents(group1));
+        Assert.assertEquals(Sets.newHashSet(user1, user2), getChildren(group1));
+
+        // update user
+        user1 = getById(user1);
+        user1.setParents(Sets.newHashSet(org1));
+        user1.setName("user1 modified");
+        jsonObject = JsonConverter.getInstance().convertOut(user1);
+        mockMvc.perform(put(API_PATH + "/users/" + user1.getId()).contentType(MediaType.APPLICATION_JSON_UTF8_VALUE).content(jsonObject))
+                .andExpect(status().isOk());
+        user1 = getById(user1);
+        Assert.assertEquals("user1 modified", user1.getName());
+        Assert.assertEquals(Sets.newHashSet(org1), getParents(user1));
+        Assert.assertEquals(Collections.emptySet(), getChildren(user1));
 
         List<UUID> uuids = Arrays.asList(user1.getId(), user2.getId(), org1.getId(), group1.getId());
-
         disable(uuids);
-        mockMvc.perform(get(API_PATH + "/parties").accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.enabled == true)]").isEmpty());
-
         enable(uuids);
-        mockMvc.perform(get(API_PATH + "/parties").accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.enabled == false)]").isEmpty());
-
         deleteByIds(uuids);
-        mockMvc.perform(get(API_PATH + "/parties").accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
-                .andExpect(status().isOk())
-                .andExpect(content().json("[]"));
     }
 
     private void enable(List<UUID> uuids) throws Exception {
         String jsonArray = JsonConverter.getInstance().convertOut(uuids);
         mockMvc.perform(put(API_PATH + "/parties/enable").contentType(MediaType.APPLICATION_JSON_UTF8_VALUE).content(jsonArray))
                 .andExpect(status().isOk());
+        mockMvc.perform(get(API_PATH + "/parties").accept(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .param(QueryParams.Q_PREDICATES, "[id in (" + StringUtils.join(uuids, ",") + ")]"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.enabled == false)]").isEmpty());
     }
 
     private void disable(List<UUID> uuids) throws Exception {
         String jsonArray = JsonConverter.getInstance().convertOut(uuids);
         mockMvc.perform(put(API_PATH + "/parties/disable").contentType(MediaType.APPLICATION_JSON_UTF8_VALUE).content(jsonArray))
                 .andExpect(status().isOk());
+        mockMvc.perform(get(API_PATH + "/parties").accept(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .param(QueryParams.Q_PREDICATES, "[id in (" + StringUtils.join(uuids, ",") + ")]"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.enabled == true)]").isEmpty());
     }
 
     private void deleteByIds(List<UUID> uuids) throws Exception {
         String jsonArray = JsonConverter.getInstance().convertOut(uuids);
         mockMvc.perform(delete(API_PATH + "/parties").contentType(MediaType.APPLICATION_JSON_UTF8_VALUE).content(jsonArray))
                 .andExpect(status().isOk());
+        mockMvc.perform(get(API_PATH + "/parties").accept(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .param(QueryParams.Q_PREDICATES, "[id in (" + StringUtils.join(uuids, ",") + ")]"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
     }
 
     private Party createParty(Party party) throws Exception {
