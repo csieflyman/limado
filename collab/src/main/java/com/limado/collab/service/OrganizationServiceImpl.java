@@ -15,6 +15,8 @@ import com.limado.collab.util.query.Operator;
 import com.limado.collab.util.query.Predicate;
 import com.limado.collab.util.query.QueryParams;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ import java.util.stream.Collectors;
  */
 @Service
 public class OrganizationServiceImpl extends PartyServiceImpl<Organization> implements OrganizationService {
+
+    private static final Logger log = LogManager.getLogger(OrganizationServiceImpl.class);
 
     @Autowired
     @Qualifier("partyIntervalTreeDao")
@@ -137,7 +141,11 @@ public class OrganizationServiceImpl extends PartyServiceImpl<Organization> impl
         if(parents.isEmpty())
             return;
 
-        parents.forEach(parent -> intervalTreeDao.removeChild(parent.getId(), child.getId()));
+        for(Party parent: parents) {
+            if(parent.getType().equals(Organization.TYPE)) {
+                intervalTreeDao.removeChild(parent.getId(), child.getId());
+            }
+        }
         super.removeParents(child, parents);
     }
 
