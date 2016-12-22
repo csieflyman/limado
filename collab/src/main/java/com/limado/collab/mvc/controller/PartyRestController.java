@@ -19,7 +19,6 @@ import com.limado.collab.util.query.Predicate;
 import com.limado.collab.util.query.QueryParams;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;

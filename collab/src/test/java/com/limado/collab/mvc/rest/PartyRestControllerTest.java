@@ -33,6 +33,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -103,7 +104,7 @@ public class PartyRestControllerTest {
         }
     }
 
-    //@Test
+    @Test
     public void testBadRequestException() throws Exception{
         User user1 = new User();
         user1.setIdentity("123");
@@ -121,7 +122,7 @@ public class PartyRestControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE));
     }
 
-    //@Test
+    @Test
     public void testResourceNotFoundException() throws Exception{
         String randomId = UUID.randomUUID().toString();
         mockMvc.perform(get(API_PATH + "/parties/" + randomId).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
@@ -130,7 +131,63 @@ public class PartyRestControllerTest {
     }
 
     @Test
-    public void test() throws Exception {
+    public void testParentsAndChildren() throws Exception {
+        Party user1 = userMap.get("user1");
+        Party user2 = userMap.get("user2");
+        Party org1 = orgMap.get("org1");
+        Party org2 = orgMap.get("org2");
+        Party group1 = groupMap.get("group1");
+        Party group2 = groupMap.get("group2");
+
+        // create
+        user1 = createParty(user1);
+        user2 = createParty(user2);
+        org1 = createParty(org1);
+        org2 = createParty(org2);
+        group1 = createParty(group1);
+        group2 = createParty(group2);
+
+        // group
+        addChild(group1, user1);
+        addChildren(group1, Sets.newHashSet(org1));
+        addParents(group2, Sets.newHashSet(group1));
+        // org
+        addChild(org1, user1);
+        addChildren(org2, Sets.newHashSet(user2));
+        addParents(org2, Sets.newHashSet(group2, org1));
+        // user
+        addParents(user2, Sets.newHashSet(group2));
+
+        Assert.assertEquals(Sets.newHashSet(group2, org1), getParents(org2));
+        Assert.assertEquals(Sets.newHashSet(org2, user2), getChildren(group2));
+        Assert.assertEquals(Sets.newHashSet(group2, org1, org2, user1, user2), getDescendants(group1));
+        Assert.assertEquals(Sets.newHashSet(group1, group2, org2, org1), getAscendants(user2));
+
+        // group
+        removeChild(group1, user1);
+        removeChildren(group1, Sets.newHashSet(org1));
+        removeParents(group2, Sets.newHashSet(group1));
+        Assert.assertEquals(Collections.emptySet(), getParents(org1));
+        Assert.assertEquals(Collections.emptySet(), getChildren(group1));
+
+        // org
+        removeChild(org1, user1);
+        removeChildren(org2, Sets.newHashSet(user2));
+        removeParents(org2, Sets.newHashSet(group2, org1));//bug
+        Assert.assertEquals(Collections.emptySet(), getParents(org2));
+        Assert.assertEquals(Collections.emptySet(), getChildren(org1));
+
+        // user
+        removeParents(user2, Sets.newHashSet(group2));
+        Assert.assertEquals(Collections.emptySet(), getParents(user2));
+        Assert.assertEquals(Collections.emptySet(), getChildren(group2));
+
+        List<UUID> uuids = Arrays.asList(user1.getId(), user2.getId(), org1.getId(), org2.getId(), group1.getId(), group2.getId());
+        deleteByIds(uuids);
+    }
+
+    @Test
+    public void testFind() throws Exception{
         Party user1 = userMap.get("user1");
         Party user2 = userMap.get("user2");
         Party org1 = orgMap.get("org1");
@@ -142,6 +199,9 @@ public class PartyRestControllerTest {
         user2 = createParty(user2);
         org1 = createParty(org1);
         group1 = createParty(group1);
+
+        addChild(group1, org1);
+        addChildren(org1, Sets.newHashSet(user1, user2));
 
         // findSize
         mockMvc.perform(get(API_PATH + "/parties")
@@ -163,20 +223,6 @@ public class PartyRestControllerTest {
                 .andExpect(jsonPath("$[1].identity").value("user1"))
                 .andExpect(jsonPath("$[2].identity").value("org1"))
                 .andExpect(jsonPath("$.length()").value(3));
-
-        // retrieve
-        user1 = getById(user1);
-        org1 = getById(org1);
-        group1 = getById(group1);
-
-        // parents and children relations
-        addChild(group1, org1);
-        addChild(org1, user1);
-        addChild(org1, user2);
-        Assert.assertEquals(Sets.newHashSet(group1), getParents(org1));
-        Assert.assertEquals(Sets.newHashSet(user1, user2), getChildren(org1));
-        Assert.assertEquals(Sets.newHashSet(org1, user1, user2), getDescendants(group1));
-        Assert.assertEquals(Sets.newHashSet(group1, org1), getAscendants(user1));
 
         // findById
         mockMvc.perform(get(API_PATH + "/parties")
@@ -202,10 +248,25 @@ public class PartyRestControllerTest {
                 .andExpect(jsonPath("$.children.length()").value(2))
                 .andReturn();
 
-        removeChild(group1, org1);
-        removeChild(org1, user1);
-        Assert.assertEquals(Collections.emptySet(), getParents(org1));
-        Assert.assertEquals(Sets.newHashSet(user2), getChildren(org1));
+        List<UUID> uuids = Arrays.asList(user1.getId(), user2.getId(), org1.getId(), group1.getId());
+        deleteByIds(uuids);
+    }
+
+    @Test
+    public void testUpdate() throws Exception{
+        Party user1 = userMap.get("user1");
+        Party user2 = userMap.get("user2");
+        Party org1 = orgMap.get("org1");
+        Party group1 = groupMap.get("group1");
+
+        // create
+        user1 = createParty(user1);
+        user2 = createParty(user2);
+        org1 = createParty(org1);
+        group1 = createParty(group1);
+
+        addChild(group1, org1);
+        addChildren(org1, Sets.newHashSet(user1, user2));
 
         // update org
         org1 = getById(org1);
@@ -244,6 +305,23 @@ public class PartyRestControllerTest {
         Assert.assertEquals("user1 modified", user1.getName());
         Assert.assertEquals(Sets.newHashSet(org1), getParents(user1));
         Assert.assertEquals(Collections.emptySet(), getChildren(user1));
+
+        List<UUID> uuids = Arrays.asList(user1.getId(), user2.getId(), org1.getId(), group1.getId());
+        deleteByIds(uuids);
+    }
+
+    @Test
+    public void testEnableAndDisableAndDelete() throws Exception{
+        Party user1 = userMap.get("user1");
+        Party user2 = userMap.get("user2");
+        Party org1 = orgMap.get("org1");
+        Party group1 = groupMap.get("group1");
+
+        // create
+        user1 = createParty(user1);
+        user2 = createParty(user2);
+        org1 = createParty(org1);
+        group1 = createParty(group1);
 
         List<UUID> uuids = Arrays.asList(user1.getId(), user2.getId(), org1.getId(), group1.getId());
         disable(uuids);
@@ -304,11 +382,44 @@ public class PartyRestControllerTest {
 
     private void addChild(Party parent, Party child) throws Exception {
         mockMvc.perform(post(API_PATH + "/" + typePathMap.get(parent.getType()) + "/" + parent.getId() + "/child/" + child.getId()))
+                .andDo(loggingResultHandler)
                 .andExpect(status().isOk());
     }
 
     private void removeChild(Party parent, Party child) throws Exception {
         mockMvc.perform(delete(API_PATH + "/" + typePathMap.get(parent.getType()) + "/" + parent.getId() + "/child/" + child.getId()))
+                .andExpect(status().isOk());
+    }
+
+    private void addChildren(Party parent, Set<Party> children) throws Exception {
+        Set<UUID> childrenIds = children.stream().map(Party::getId).collect(Collectors.toSet());
+        String jsonArray = JsonConverter.getInstance().convertOut(childrenIds);
+        mockMvc.perform(post(API_PATH + "/" + typePathMap.get(parent.getType()) + "/" + parent.getId() + "/children")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE).content(jsonArray))
+                .andExpect(status().isOk());
+    }
+
+    private void removeChildren(Party parent, Set<Party> children) throws Exception {
+        Set<UUID> childrenIds = children.stream().map(Party::getId).collect(Collectors.toSet());
+        String jsonArray = JsonConverter.getInstance().convertOut(childrenIds);
+        mockMvc.perform(delete(API_PATH + "/" + typePathMap.get(parent.getType()) + "/" + parent.getId() + "/children")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE).content(jsonArray))
+                .andExpect(status().isOk());
+    }
+
+    private void addParents(Party parent, Set<Party> children) throws Exception {
+        Set<UUID> childrenIds = children.stream().map(Party::getId).collect(Collectors.toSet());
+        String jsonArray = JsonConverter.getInstance().convertOut(childrenIds);
+        mockMvc.perform(post(API_PATH + "/" + typePathMap.get(parent.getType()) + "/" + parent.getId() + "/parents")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE).content(jsonArray))
+                .andExpect(status().isOk());
+    }
+
+    private void removeParents(Party parent, Set<Party> children) throws Exception {
+        Set<UUID> childrenIds = children.stream().map(Party::getId).collect(Collectors.toSet());
+        String jsonArray = JsonConverter.getInstance().convertOut(childrenIds);
+        mockMvc.perform(delete(API_PATH + "/" + typePathMap.get(parent.getType()) + "/" + parent.getId() + "/parents")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE).content(jsonArray))
                 .andExpect(status().isOk());
     }
 

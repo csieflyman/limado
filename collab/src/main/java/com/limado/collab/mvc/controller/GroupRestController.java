@@ -11,6 +11,9 @@ import com.limado.collab.mvc.form.GroupForm;
 import com.limado.collab.mvc.validator.PartyFormValidator;
 import com.limado.collab.mvc.validator.ValidationUtils;
 import com.limado.collab.service.GroupService;
+import com.limado.collab.util.query.Operator;
+import com.limado.collab.util.query.Predicate;
+import com.limado.collab.util.query.QueryParams;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +22,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * author flyman
@@ -39,6 +44,7 @@ public class GroupRestController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity create(@RequestBody @Validated GroupForm form, BindingResult result) {
         log.debug("create groupForm: " + form);
+        new PartyFormValidator().validate(form, result);
         if(result.hasErrors()) {
             log.debug(ValidationUtils.buildErrorMessage(result));
             throw new BadRequestException("invalid group data.", null, ValidationUtils.buildErrorMessage(result));
@@ -56,17 +62,13 @@ public class GroupRestController {
         if(!form.getId().toString().equals(uuidString)) {
             throw new BadRequestException("invalid uuid.", null, String.format("path uuid %s isn't the same as uuid %s in request body", uuidString, form.getId()));
         }
+        new PartyFormValidator().validate(form, result);
         if(result.hasErrors()) {
             log.debug(ValidationUtils.buildErrorMessage(result));
             throw new BadRequestException("invalid group data.", null, ValidationUtils.buildErrorMessage(result));
         }
         Group group = form.buildModel();
         groupService.update(group);
-    }
-
-    @InitBinder
-    public void initBinder(WebDataBinder binder) {
-        binder.setValidator(new PartyFormValidator());
     }
 
     @PostMapping("{parentId}/child/{childId}")
@@ -79,7 +81,6 @@ public class GroupRestController {
         }catch (IllegalArgumentException e) {
             throw new BadRequestException(String.format("invalid uuid format: %s, %s", parentId, childId) , e);
         }
-
         Party group = groupService.getById(parentUUID, Party.RELATION_PARENT);
         if(group != null && !group.getType().equals(Group.TYPE)) {
             throw new BadRequestException(String.format("%s is not a group", parentUUID));
@@ -105,5 +106,101 @@ public class GroupRestController {
         }
         Party child = groupService.getById(childUUID);
         groupService.removeChild((Group) group, child);
+    }
+
+    @PostMapping(value = "{parentId}/children", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void addChildren(@PathVariable String parentId, @RequestBody List<String> childrenIds) {
+        if (childrenIds.isEmpty())
+            return;
+
+        UUID parentUUID;
+        List<UUID> childrenUUIDs;
+        try {
+            parentUUID = UUID.fromString(parentId);
+            childrenUUIDs = childrenIds.stream().map(UUID::fromString).collect(Collectors.toList());
+        }catch (IllegalArgumentException e) {
+            throw new BadRequestException(String.format("invalid uuid format: %s, %s", parentId, childrenIds) , e);
+        }
+
+        Party group = groupService.getById(parentUUID, Party.RELATION_PARENT);
+        if(group != null && !group.getType().equals(Group.TYPE)) {
+            throw new BadRequestException(String.format("%s is not a group", group));
+        }
+        QueryParams params = new QueryParams();
+        params.addPredicate(new Predicate("id", Operator.IN, childrenUUIDs));
+        List<Party> children = groupService.find(params);
+        groupService.addChildren((Group) group, new HashSet<>(children));
+    }
+
+    @DeleteMapping(value = "{parentId}/children", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void removeChildren(@PathVariable String parentId, @RequestBody List<String> childrenIds) {
+        if (childrenIds.isEmpty())
+            return;
+
+        UUID parentUUID;
+        List<UUID> childrenUUIDs;
+        try {
+            parentUUID = UUID.fromString(parentId);
+            childrenUUIDs = childrenIds.stream().map(UUID::fromString).collect(Collectors.toList());
+        }catch (IllegalArgumentException e) {
+            throw new BadRequestException(String.format("invalid uuid format: %s, %s", parentId, childrenIds) , e);
+        }
+
+        Party group = groupService.getById(parentUUID, Party.RELATION_PARENT);
+        if(group != null && !group.getType().equals(Group.TYPE)) {
+            throw new BadRequestException(String.format("%s is not a group", group));
+        }
+        QueryParams params = new QueryParams();
+        params.addPredicate(new Predicate("id", Operator.IN, childrenUUIDs));
+        List<Party> children = groupService.find(params);
+        groupService.removeChildren((Group) group, new HashSet<>(children));
+    }
+
+    @PostMapping(value = "{childId}/parents", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void addParents(@PathVariable String childId, @RequestBody List<String> parentsIds) {
+        if (parentsIds.isEmpty())
+            return;
+
+        UUID childUUID;
+        List<UUID> parentsUUIDs;
+        try {
+            childUUID = UUID.fromString(childId);
+            parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toList());
+        }catch (IllegalArgumentException e) {
+            throw new BadRequestException(String.format("invalid uuid format: %s, %s", childId, parentsIds) , e);
+        }
+
+        Party group = groupService.getById(childUUID);
+        if(group != null && !group.getType().equals(Group.TYPE)) {
+            throw new BadRequestException(String.format("%s is not a group", group));
+        }
+        QueryParams params = new QueryParams();
+        params.addPredicate(new Predicate("id", Operator.IN, parentsUUIDs));
+        List<Party> parents = groupService.find(params);
+        groupService.addParents((Group) group, new HashSet<>(parents));
+    }
+
+    @DeleteMapping(value = "{childId}/parents", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void removeParents(@PathVariable String childId, @RequestBody List<String> parentsIds) {
+        if (parentsIds.isEmpty())
+            return;
+
+        UUID childUUID;
+        List<UUID> parentsUUIDs;
+        try {
+            childUUID = UUID.fromString(childId);
+            parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toList());
+        }catch (IllegalArgumentException e) {
+            throw new BadRequestException(String.format("invalid uuid format: %s, %s", childId, parentsIds) , e);
+        }
+
+        Party group = groupService.getById(childUUID);
+        if(group != null && !group.getType().equals(Group.TYPE)) {
+            throw new BadRequestException(String.format("%s is not a group", group));
+        }
+        QueryParams params = new QueryParams();
+        params.addPredicate(new Predicate("id", Operator.IN, parentsUUIDs));
+        List<Party> parents = groupService.find(params);
+        groupService.removeParents((Group) group, new HashSet<>(parents));
     }
 }

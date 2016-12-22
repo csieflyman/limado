@@ -4,7 +4,6 @@
 
 package com.limado.collab.mvc.controller;
 
-import com.limado.collab.model.Group;
 import com.limado.collab.model.Organization;
 import com.limado.collab.model.Party;
 import com.limado.collab.mvc.exception.BadRequestException;
@@ -12,6 +11,9 @@ import com.limado.collab.mvc.form.OrganizationForm;
 import com.limado.collab.mvc.validator.PartyFormValidator;
 import com.limado.collab.mvc.validator.ValidationUtils;
 import com.limado.collab.service.OrganizationService;
+import com.limado.collab.util.query.Operator;
+import com.limado.collab.util.query.Predicate;
+import com.limado.collab.util.query.QueryParams;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +22,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * author flyman
@@ -40,6 +44,7 @@ public class OrganizationRestController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity create(@RequestBody @Validated OrganizationForm form, BindingResult result) {
         log.debug("create orgForm: " + form);
+        new PartyFormValidator().validate(form, result);
         if(result.hasErrors()) {
             log.debug(ValidationUtils.buildErrorMessage(result));
             throw new BadRequestException("invalid org data.", null, ValidationUtils.buildErrorMessage(result));
@@ -57,17 +62,13 @@ public class OrganizationRestController {
         if(!form.getId().toString().equals(uuidString)) {
             throw new BadRequestException("invalid uuid.", null, String.format("path uuid %s isn't the same as uuid %s in request body", uuidString, form.getId()));
         }
+        new PartyFormValidator().validate(form, result);
         if(result.hasErrors()) {
             log.debug(ValidationUtils.buildErrorMessage(result));
             throw new BadRequestException("invalid org data.", null, ValidationUtils.buildErrorMessage(result));
         }
         Organization org = form.buildModel();
         organizationService.update(org);
-    }
-
-    @InitBinder
-    public void initBinder(WebDataBinder binder) {
-        binder.setValidator(new PartyFormValidator());
     }
 
     @PostMapping("{parentId}/child/{childId}")
@@ -106,5 +107,101 @@ public class OrganizationRestController {
         }
         Party child = organizationService.getById(childUUID);
         organizationService.removeChild((Organization) organization, child);
+    }
+
+    @PostMapping(value = "{parentId}/children", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void addChildren(@PathVariable String parentId, @RequestBody List<String> childrenIds) {
+        if (childrenIds.isEmpty())
+            return;
+
+        UUID parentUUID;
+        List<UUID> childrenUUIDs;
+        try {
+            parentUUID = UUID.fromString(parentId);
+            childrenUUIDs = childrenIds.stream().map(UUID::fromString).collect(Collectors.toList());
+        }catch (IllegalArgumentException e) {
+            throw new BadRequestException(String.format("invalid uuid format: %s, %s", parentId, childrenIds) , e);
+        }
+
+        Party organization = organizationService.getById(parentUUID, Party.RELATION_PARENT);
+        if(organization != null && !organization.getType().equals(Organization.TYPE)) {
+            throw new BadRequestException(String.format("%s is not a organization", organization));
+        }
+        QueryParams params = new QueryParams();
+        params.addPredicate(new Predicate("id", Operator.IN, childrenUUIDs));
+        List<Party> children = organizationService.find(params);
+        organizationService.addChildren((Organization) organization, new HashSet<>(children));
+    }
+
+    @DeleteMapping(value = "{parentId}/children", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void removeChildren(@PathVariable String parentId, @RequestBody List<String> childrenIds) {
+        if (childrenIds.isEmpty())
+            return;
+
+        UUID parentUUID;
+        List<UUID> childrenUUIDs;
+        try {
+            parentUUID = UUID.fromString(parentId);
+            childrenUUIDs = childrenIds.stream().map(UUID::fromString).collect(Collectors.toList());
+        }catch (IllegalArgumentException e) {
+            throw new BadRequestException(String.format("invalid uuid format: %s, %s", parentId, childrenIds) , e);
+        }
+
+        Party organization = organizationService.getById(parentUUID, Party.RELATION_PARENT);
+        if(organization != null && !organization.getType().equals(Organization.TYPE)) {
+            throw new BadRequestException(String.format("%s is not a organization", organization));
+        }
+        QueryParams params = new QueryParams();
+        params.addPredicate(new Predicate("id", Operator.IN, childrenUUIDs));
+        List<Party> children = organizationService.find(params);
+        organizationService.removeChildren((Organization) organization, new HashSet<>(children));
+    }
+
+    @PostMapping(value = "{childId}/parents", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void addParents(@PathVariable String childId, @RequestBody List<String> parentsIds) {
+        if (parentsIds.isEmpty())
+            return;
+
+        UUID childUUID;
+        List<UUID> parentsUUIDs;
+        try {
+            childUUID = UUID.fromString(childId);
+            parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toList());
+        }catch (IllegalArgumentException e) {
+            throw new BadRequestException(String.format("invalid uuid format: %s, %s", childId, parentsIds) , e);
+        }
+
+        Party organization = organizationService.getById(childUUID);
+        if(organization != null && !organization.getType().equals(Organization.TYPE)) {
+            throw new BadRequestException(String.format("%s is not a organization", organization));
+        }
+        QueryParams params = new QueryParams();
+        params.addPredicate(new Predicate("id", Operator.IN, parentsUUIDs));
+        List<Party> parents = organizationService.find(params);
+        organizationService.addParents((Organization) organization, new HashSet<>(parents));
+    }
+
+    @DeleteMapping(value = "{childId}/parents", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void removeParents(@PathVariable String childId, @RequestBody List<String> parentsIds) {
+        if (parentsIds.isEmpty())
+            return;
+
+        UUID childUUID;
+        List<UUID> parentsUUIDs;
+        try {
+            childUUID = UUID.fromString(childId);
+            parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toList());
+        }catch (IllegalArgumentException e) {
+            throw new BadRequestException(String.format("invalid uuid format: %s, %s", childId, parentsIds) , e);
+        }
+
+        Party organization = organizationService.getById(childUUID);
+        if(organization != null && !organization.getType().equals(Organization.TYPE)) {
+            throw new BadRequestException(String.format("%s is not a organization", organization));
+        }
+        QueryParams params = new QueryParams();
+        params.addPredicate(new Predicate("id", Operator.IN, parentsUUIDs));
+        List<Party> parents = organizationService.find(params);
+        organizationService.removeParents((Organization) organization, new HashSet<>(parents));
     }
 }

@@ -4,12 +4,16 @@
 
 package com.limado.collab.mvc.controller;
 
+import com.limado.collab.model.Party;
 import com.limado.collab.model.User;
 import com.limado.collab.mvc.exception.BadRequestException;
 import com.limado.collab.mvc.form.UserForm;
 import com.limado.collab.mvc.validator.PartyFormValidator;
 import com.limado.collab.mvc.validator.ValidationUtils;
 import com.limado.collab.service.UserService;
+import com.limado.collab.util.query.Operator;
+import com.limado.collab.util.query.Predicate;
+import com.limado.collab.util.query.QueryParams;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +22,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * author flyman
@@ -37,6 +45,7 @@ public class UserRestController {
     @ResponseBody
     public ResponseEntity create(@RequestBody @Validated UserForm form, BindingResult result) {
         log.debug("create userForm: " + form);
+        new PartyFormValidator().validate(form, result);
         if(result.hasErrors()) {
             log.debug(ValidationUtils.buildErrorMessage(result));
             throw new BadRequestException("invalid user data.", null, ValidationUtils.buildErrorMessage(result));
@@ -54,6 +63,7 @@ public class UserRestController {
         if(!form.getId().toString().equals(uuidString)) {
             throw new BadRequestException("invalid uuid.", null, String.format("path uuid %s isn't the same as uuid %s in request body", uuidString, form.getId()));
         }
+        new PartyFormValidator().validate(form, result);
         if(result.hasErrors()) {
             log.debug(ValidationUtils.buildErrorMessage(result));
             throw new BadRequestException("invalid user data.", null, ValidationUtils.buildErrorMessage(result));
@@ -62,8 +72,51 @@ public class UserRestController {
         userService.update(user);
     }
 
-    @InitBinder
-    public void initBinder(WebDataBinder binder) {
-        binder.setValidator(new PartyFormValidator());
+    @PostMapping(value = "{childId}/parents", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void addParents(@PathVariable String childId, @RequestBody List<String> parentsIds) {
+        if (parentsIds.isEmpty())
+            return;
+
+        UUID childUUID;
+        List<UUID> parentsUUIDs;
+        try {
+            childUUID = UUID.fromString(childId);
+            parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toList());
+        }catch (IllegalArgumentException e) {
+            throw new BadRequestException(String.format("invalid uuid format: %s, %s", childId, parentsIds) , e);
+        }
+
+        Party user = userService.getById(childUUID);
+        if(user != null && !user.getType().equals(User.TYPE)) {
+            throw new BadRequestException(String.format("%s is not a user", user));
+        }
+        QueryParams params = new QueryParams();
+        params.addPredicate(new Predicate("id", Operator.IN, parentsUUIDs));
+        List<Party> parents = userService.find(params);
+        userService.addParents((User) user, new HashSet<>(parents));
+    }
+
+    @DeleteMapping(value = "{childId}/parents", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void removeParents(@PathVariable String childId, @RequestBody List<String> parentsIds) {
+        if (parentsIds.isEmpty())
+            return;
+
+        UUID childUUID;
+        List<UUID> parentsUUIDs;
+        try {
+            childUUID = UUID.fromString(childId);
+            parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toList());
+        }catch (IllegalArgumentException e) {
+            throw new BadRequestException(String.format("invalid uuid format: %s, %s", childId, parentsIds) , e);
+        }
+
+        Party user = userService.getById(childUUID);
+        if(user != null && !user.getType().equals(User.TYPE)) {
+            throw new BadRequestException(String.format("%s is not a user", user));
+        }
+        QueryParams params = new QueryParams();
+        params.addPredicate(new Predicate("id", Operator.IN, parentsUUIDs));
+        List<Party> parents = userService.find(params);
+        userService.removeParents((User) user, new HashSet<>(parents));
     }
 }
