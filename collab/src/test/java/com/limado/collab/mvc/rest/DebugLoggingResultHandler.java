@@ -28,5 +28,6 @@ public class DebugLoggingResultHandler implements ResultHandler {
         request.getParameterMap().forEach((key, value) -> log.debug(key + " = " + Arrays.asList(value)));
         log.debug("response status = " + response.getStatus());
         log.debug("response body: " + response.getContentAsString());
+        log.debug("exception: ", result.getResolvedException());
     }
 }
