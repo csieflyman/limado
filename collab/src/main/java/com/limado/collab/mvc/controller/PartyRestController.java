@@ -44,17 +44,11 @@ public class PartyRestController {
     @Autowired
     private GroupService groupService;
 
-    @GetMapping(value = "{uuidString}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
-    public Party getById(@PathVariable String uuidString, @RequestParam(name = QueryParams.Q_FETCH_RELATIONS, required = false) String fetchRelations) {
-        log.debug("getById: " + uuidString + " , fetchRelations = " + fetchRelations);
-        UUID uuid;
-        try {
-            uuid = UUID.fromString(uuidString);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("invalid uuid format", e, uuidString);
-        }
-
+    public Party getById(@PathVariable String id, @RequestParam(name = QueryParams.Q_FETCH_RELATIONS, required = false) String fetchRelations) {
+        log.debug("getById: " + id + " , fetchRelations = " + fetchRelations);
+        UUID uuid = UUID.fromString(id);
         Party party;
         try {
             if (fetchRelations != null) {
@@ -63,62 +57,42 @@ public class PartyRestController {
                 party = partyService.getById(uuid);
             }
         } catch (IllegalArgumentException e) {
-            throw new ResourceNotFoundException("party uuid is not exist", e, uuidString);
+            throw new ResourceNotFoundException("party uuid is not exist", e, id);
         }
         return party;
     }
 
-    @GetMapping(value = "{uuidString}/parents", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "{id}/parents", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
-    public Set<Party> getParents(@PathVariable String uuidString) {
-        UUID uuid;
-        try {
-            uuid = UUID.fromString(uuidString);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("invalid uuid format", e, uuidString);
-        }
+    public Set<Party> getParents(@PathVariable String id) {
+        UUID uuid = UUID.fromString(id);
         Set<Party> parents = partyService.getParents(uuid);
         removePartyRelations(parents);
         return parents;
     }
 
-    @GetMapping(value = "{uuidString}/children", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "{id}/children", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
-    public Set<Party> getChildren(@PathVariable String uuidString) {
-        UUID uuid;
-        try {
-            uuid = UUID.fromString(uuidString);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("invalid uuid format", e, uuidString);
-        }
+    public Set<Party> getChildren(@PathVariable String id) {
+        UUID uuid = UUID.fromString(id);
         Set<Party> children = partyService.getChildren(uuid);
         removePartyRelations(children);
         return children;
     }
 
-    @GetMapping(value = "{uuidString}/ascendants", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "{id}/ascendants", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
-    public Set<Party> getAscendants(@PathVariable String uuidString) {
-        UUID uuid;
-        try {
-            uuid = UUID.fromString(uuidString);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("invalid uuid format", e, uuidString);
-        }
+    public Set<Party> getAscendants(@PathVariable String id) {
+        UUID uuid = UUID.fromString(id);
         Set<Party> ascendants = partyService.getAscendants(uuid);
         removePartyRelations(ascendants);
         return ascendants;
     }
 
-    @GetMapping(value = "{uuidString}/descendants", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(value = "{id}/descendants", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
-    public Set<Party> getDescendants(@PathVariable String uuidString) {
-        UUID uuid;
-        try {
-            uuid = UUID.fromString(uuidString);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("invalid uuid format", e, uuidString);
-        }
+    public Set<Party> getDescendants(@PathVariable String id) {
+        UUID uuid = UUID.fromString(id);
         Set<Party> descendants = partyService.getDescendants(uuid);
         removePartyRelations(descendants);
         return descendants;
@@ -138,38 +112,23 @@ public class PartyRestController {
     }
 
     @PutMapping("enable")
-    public void enable(@RequestBody List<String> uuidStringList) {
-        log.debug("enable: " + uuidStringList);
-        List<UUID> uuids;
-        try {
-            uuids = uuidStringList.stream().map(UUID::fromString).collect(Collectors.toList());
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("invalid uuid format", e, uuidStringList);
-        }
+    public void enable(@RequestBody List<String> idList) {
+        log.debug("enable: " + idList);
+        Set<UUID> uuids = idList.stream().map(UUID::fromString).collect(Collectors.toSet());
         partyService.enable(uuids);
     }
 
     @PutMapping("disable")
-    public void disable(@RequestBody List<String> uuidStringList) {
-        log.debug("disable: " + uuidStringList);
-        List<UUID> uuids;
-        try {
-            uuids = uuidStringList.stream().map(UUID::fromString).collect(Collectors.toList());
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("invalid uuid format", e, uuidStringList);
-        }
+    public void disable(@RequestBody List<String> idList) {
+        log.debug("disable: " + idList);
+        Set<UUID> uuids = idList.stream().map(UUID::fromString).collect(Collectors.toSet());
         partyService.disable(uuids);
     }
 
     @DeleteMapping
-    public void deleteByIds(@RequestBody List<String> uuidStringList) {
-        log.debug("delete: " + uuidStringList);
-        List<UUID> uuids;
-        try {
-            uuids = uuidStringList.stream().map(UUID::fromString).collect(Collectors.toList());
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("invalid uuid format", e, uuidStringList);
-        }
+    public void deleteByIds(@RequestBody List<String> idList) {
+        log.debug("delete: " + idList);
+        Set<UUID> uuids = idList.stream().map(UUID::fromString).collect(Collectors.toSet());
 
         QueryParams params = new QueryParams();
         params.addPredicate(new Predicate("id", Operator.IN, uuids));

@@ -21,11 +21,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -43,7 +43,7 @@ public class UserRestController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
-    public ResponseEntity create(@RequestBody @Validated UserForm form, BindingResult result) {
+    public ResponseEntity create(@RequestBody UserForm form, BindingResult result) {
         log.debug("create userForm: " + form);
         new PartyFormValidator().validate(form, result);
         if(result.hasErrors()) {
@@ -57,11 +57,11 @@ public class UserRestController {
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
-    @PutMapping(value = "{uuidString}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public void update(@PathVariable String uuidString, @RequestBody @Validated UserForm form, BindingResult result) {
+    @PutMapping(value = "{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void update(@PathVariable String id, @RequestBody UserForm form, BindingResult result) {
         log.debug("update userForm: " + form);
-        if(!form.getId().toString().equals(uuidString)) {
-            throw new BadRequestException("invalid uuid.", null, String.format("path uuid %s isn't the same as uuid %s in request body", uuidString, form.getId()));
+        if(!form.getId().toString().equals(id)) {
+            throw new BadRequestException("invalid uuid.", null, String.format("path uuid %s isn't the same as uuid %s in request body", id, form.getId()));
         }
         new PartyFormValidator().validate(form, result);
         if(result.hasErrors()) {
@@ -77,15 +77,8 @@ public class UserRestController {
         if (parentsIds.isEmpty())
             return;
 
-        UUID childUUID;
-        List<UUID> parentsUUIDs;
-        try {
-            childUUID = UUID.fromString(childId);
-            parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toList());
-        }catch (IllegalArgumentException e) {
-            throw new BadRequestException(String.format("invalid uuid format: %s, %s", childId, parentsIds) , e);
-        }
-
+        UUID childUUID = UUID.fromString(childId);
+        Set<UUID> parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toSet());
         Party user = userService.getById(childUUID);
         if(user != null && !user.getType().equals(User.TYPE)) {
             throw new BadRequestException(String.format("%s is not a user", user));
@@ -101,15 +94,8 @@ public class UserRestController {
         if (parentsIds.isEmpty())
             return;
 
-        UUID childUUID;
-        List<UUID> parentsUUIDs;
-        try {
-            childUUID = UUID.fromString(childId);
-            parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toList());
-        }catch (IllegalArgumentException e) {
-            throw new BadRequestException(String.format("invalid uuid format: %s, %s", childId, parentsIds) , e);
-        }
-
+        UUID childUUID = UUID.fromString(childId);
+        Set<UUID> parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toSet());
         Party user = userService.getById(childUUID);
         if(user != null && !user.getType().equals(User.TYPE)) {
             throw new BadRequestException(String.format("%s is not a user", user));

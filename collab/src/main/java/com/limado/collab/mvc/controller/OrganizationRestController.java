@@ -21,11 +21,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -42,7 +42,7 @@ public class OrganizationRestController {
     private OrganizationService organizationService;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity create(@RequestBody @Validated OrganizationForm form, BindingResult result) {
+    public ResponseEntity create(@RequestBody OrganizationForm form, BindingResult result) {
         log.debug("create orgForm: " + form);
         new PartyFormValidator().validate(form, result);
         if(result.hasErrors()) {
@@ -56,11 +56,11 @@ public class OrganizationRestController {
         return ResponseEntity.status(HttpStatus.CREATED).body(org);
     }
 
-    @PutMapping(value = "{uuidString}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public void update(@PathVariable String uuidString, @RequestBody @Validated OrganizationForm form, BindingResult result) {
+    @PutMapping(value = "{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void update(@PathVariable String id, @RequestBody OrganizationForm form, BindingResult result) {
         log.debug("update orgForm: " + form);
-        if(!form.getId().toString().equals(uuidString)) {
-            throw new BadRequestException("invalid uuid.", null, String.format("path uuid %s isn't the same as uuid %s in request body", uuidString, form.getId()));
+        if(!form.getId().toString().equals(id)) {
+            throw new BadRequestException("invalid uuid.", null, String.format("path uuid %s isn't the same as uuid %s in request body", id, form.getId()));
         }
         new PartyFormValidator().validate(form, result);
         if(result.hasErrors()) {
@@ -73,15 +73,8 @@ public class OrganizationRestController {
 
     @PostMapping("{parentId}/child/{childId}")
     public void addChild(@PathVariable String parentId, @PathVariable String childId) {
-        UUID parentUUID;
-        UUID childUUID;
-        try {
-            parentUUID = UUID.fromString(parentId);
-            childUUID = UUID.fromString(childId);
-        }catch (IllegalArgumentException e) {
-            throw new BadRequestException(String.format("invalid uuid format: %s, %s", parentId, childId) , e);
-        }
-
+        UUID parentUUID = UUID.fromString(parentId);
+        UUID childUUID = UUID.fromString(childId);
         Party organization = organizationService.getById(parentUUID, Party.RELATION_PARENT);
         if(organization != null && !organization.getType().equals(Organization.TYPE)) {
             throw new BadRequestException(String.format("%s is not a organization", parentUUID));
@@ -92,15 +85,8 @@ public class OrganizationRestController {
 
     @DeleteMapping("{parentId}/child/{childId}")
     public void removeChild(@PathVariable String parentId, @PathVariable String childId) {
-        UUID parentUUID;
-        UUID childUUID;
-        try {
-            parentUUID = UUID.fromString(parentId);
-            childUUID = UUID.fromString(childId);
-        }catch (IllegalArgumentException e) {
-            throw new BadRequestException(String.format("invalid uuid format: %s, %s", parentId, childId) , e);
-        }
-
+        UUID parentUUID = UUID.fromString(parentId);
+        UUID childUUID = UUID.fromString(childId);
         Party organization = organizationService.getById(parentUUID, Party.RELATION_PARENT);
         if(organization != null && !organization.getType().equals(Organization.TYPE)) {
             throw new BadRequestException(String.format("%s is not a organization", parentUUID));
@@ -114,15 +100,8 @@ public class OrganizationRestController {
         if (childrenIds.isEmpty())
             return;
 
-        UUID parentUUID;
-        List<UUID> childrenUUIDs;
-        try {
-            parentUUID = UUID.fromString(parentId);
-            childrenUUIDs = childrenIds.stream().map(UUID::fromString).collect(Collectors.toList());
-        }catch (IllegalArgumentException e) {
-            throw new BadRequestException(String.format("invalid uuid format: %s, %s", parentId, childrenIds) , e);
-        }
-
+        UUID parentUUID = UUID.fromString(parentId);
+        Set<UUID> childrenUUIDs = childrenIds.stream().map(UUID::fromString).collect(Collectors.toSet());
         Party organization = organizationService.getById(parentUUID, Party.RELATION_PARENT);
         if(organization != null && !organization.getType().equals(Organization.TYPE)) {
             throw new BadRequestException(String.format("%s is not a organization", organization));
@@ -138,15 +117,8 @@ public class OrganizationRestController {
         if (childrenIds.isEmpty())
             return;
 
-        UUID parentUUID;
-        List<UUID> childrenUUIDs;
-        try {
-            parentUUID = UUID.fromString(parentId);
-            childrenUUIDs = childrenIds.stream().map(UUID::fromString).collect(Collectors.toList());
-        }catch (IllegalArgumentException e) {
-            throw new BadRequestException(String.format("invalid uuid format: %s, %s", parentId, childrenIds) , e);
-        }
-
+        UUID parentUUID = UUID.fromString(parentId);
+        Set<UUID> childrenUUIDs = childrenIds.stream().map(UUID::fromString).collect(Collectors.toSet());
         Party organization = organizationService.getById(parentUUID, Party.RELATION_PARENT);
         if(organization != null && !organization.getType().equals(Organization.TYPE)) {
             throw new BadRequestException(String.format("%s is not a organization", organization));
@@ -162,15 +134,8 @@ public class OrganizationRestController {
         if (parentsIds.isEmpty())
             return;
 
-        UUID childUUID;
-        List<UUID> parentsUUIDs;
-        try {
-            childUUID = UUID.fromString(childId);
-            parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toList());
-        }catch (IllegalArgumentException e) {
-            throw new BadRequestException(String.format("invalid uuid format: %s, %s", childId, parentsIds) , e);
-        }
-
+        UUID childUUID = UUID.fromString(childId);
+        Set<UUID> parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toSet());
         Party organization = organizationService.getById(childUUID);
         if(organization != null && !organization.getType().equals(Organization.TYPE)) {
             throw new BadRequestException(String.format("%s is not a organization", organization));
@@ -186,15 +151,8 @@ public class OrganizationRestController {
         if (parentsIds.isEmpty())
             return;
 
-        UUID childUUID;
-        List<UUID> parentsUUIDs;
-        try {
-            childUUID = UUID.fromString(childId);
-            parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toList());
-        }catch (IllegalArgumentException e) {
-            throw new BadRequestException(String.format("invalid uuid format: %s, %s", childId, parentsIds) , e);
-        }
-
+        UUID childUUID = UUID.fromString(childId);
+        Set<UUID> parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toSet());
         Party organization = organizationService.getById(childUUID);
         if(organization != null && !organization.getType().equals(Organization.TYPE)) {
             throw new BadRequestException(String.format("%s is not a organization", organization));
