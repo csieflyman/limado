@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "title": "Party API",
-        "description": "新增、修改、搜尋、刪除 Party 類型的物件，包含使用者 User, 組織 Orgranization, 群組 Group",
+        "description": "Manipulate party data including User, Organization and Group",
         "version": "1.0.0"
     },
     "host": "@FQDN@",
@@ -19,13 +19,13 @@
     "paths": {
         "/users": {
             "post": {
-                "summary": "新增使用者",
-                "description": "新增使用者",
+                "summary": "Create user",
+                "description": "Create user",
                 "parameters": [
                     {
                         "name": "body",
                         "in": "body",
-                        "description": " 1. id 屬性將自動產生 2. type 屬性值必須為 user 3. identity 屬性不得與其它使用者重複 4. creationDate, modificationDate 屬性將自動產生 5. parents 屬性可填入已存在的組織、群組以建立 child 關係 6. 不允許填入 children 屬性",
+                        "description": " 1. id, creationDate and modificationDate will be generated automatically 2. type value must be 'user' 3. identity must be unique in all users 4. parents must be the group or organization 5. children is disallowed",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/Party"
@@ -37,19 +37,19 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "使用者物件(含 id 屬性)",
+                        "description": "user object including id",
                         "schema": {
                             "$ref": "#/definitions/Party"
                         }
                     },
                     "400": {
-                        "description": "不合法的屬性值",
+                        "description": "invalid property value",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -59,8 +59,8 @@
         },
         "/users/{id}": {
             "put": {
-                "summary": "修改使用者",
-                "description": "修改使用者",
+                "summary": "Update user",
+                "description": "Update user",
                 "parameters": [
                     {
                         "name": "id",
@@ -73,7 +73,7 @@
                     {
                         "name": "body",
                         "in": "body",
-                        "description": " 1. id 屬性必填 2. type 屬性值必須為 user 3. identity 屬性不得與其它使用者重複 4. creationDate, modificationDate 是唯讀屬性 5. parents 屬性可填入已存在的組織、群組以建立或刪除 child 關係 6. 不允許填入 children 屬性",
+                        "description": " 1. id, creationDate and modificationDate will be generated automatically 2. type value must be 'user' 3. identity must be unique in all users 4. parents must be the group or organization 5. children is disallowed",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/Party"
@@ -85,16 +85,112 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "無回應內容"
+                        "description": "No response body"
                     },
                     "400": {
-                        "description": "不合法的屬性值",
+                        "description": "invalid property value",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{userId}/parents": {
+            "post": {
+                "summary": "Add parents of specified user",
+                "description": "Add parents of specified user",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "user id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "parentsIds",
+                        "in": "body",
+                        "description": "parents id array (valid type: group, organization)",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "uuid"
+                            }
+                        }
+                    }
+                ],
+                "tags": [
+                    "User"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    },
+                    "400": {
+                        "description": "Invalid uuid or parent type",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unknown Error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Remove parents of specified user",
+                "description": "Remove parents of specified user",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "user id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "parentsIds",
+                        "in": "body",
+                        "description": "parents id array",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "uuid"
+                            }
+                        }
+                    }
+                ],
+                "tags": [
+                    "User"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    },
+                    "400": {
+                        "description": "Invalid uuid",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -104,13 +200,13 @@
         },
         "/organizations": {
             "post": {
-                "summary": "新增組織",
-                "description": "新增組織",
+                "summary": "Create Organization",
+                "description": "Create Organization",
                 "parameters": [
                     {
                         "name": "body",
                         "in": "body",
-                        "description": " 1. id 屬性將自動產生 2. type 屬性值必須為 organization 3. identity 屬性不得與其它組織重複 4. creationDate, modificationDate 屬性將自動產生 5. parents 屬性可填入已存在的組織以建立 child 關係 6. children 屬性可填入已存在的組織、使用者以建立 child 關係",
+                        "description": " 1. id, creationDate and modificationDate will be generated automatically 2. type value must be 'organization' 3. identity must be unique in all organizations 4. parents must be the group or organization 5. children must be the organization or user",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/Party"
@@ -122,19 +218,19 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "組織物件(含 id 屬性)",
+                        "description": "organization object including id",
                         "schema": {
                             "$ref": "#/definitions/Party"
                         }
                     },
                     "400": {
-                        "description": "不合法的屬性值",
+                        "description": "invalid property value",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -144,8 +240,8 @@
         },
         "/organizations/{id}": {
             "put": {
-                "summary": "修改組織",
-                "description": "修改組織",
+                "summary": "Update Organization",
+                "description": "Update Organization",
                 "parameters": [
                     {
                         "name": "id",
@@ -158,7 +254,7 @@
                     {
                         "name": "body",
                         "in": "body",
-                        "description": " 1. id 屬性必填 2. type 屬性值必須為 organization 3. identity 屬性不得與其它組織重複 4. creationDate, modificationDate 是唯讀屬性 5. parents 屬性可填入已存在的組織以建立或刪除 child 關係 6. children 屬性可填入已存在的組織、使用者以建立 child 關係",
+                        "description": " 1. id, creationDate and modificationDate will be generated automatically 2. type value must be 'organization' 3. identity must be unique in all organizations 4. parents must be the group or organization 5. children must be the organization or user",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/Party"
@@ -170,16 +266,16 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "無回應內容"
+                        "description": "No response body"
                     },
                     "400": {
-                        "description": "不合法的屬性值",
+                        "description": "invalid property value",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -187,15 +283,15 @@
                 }
             }
         },
-        "/organizations/{parentId}/child/{childId}": {
+        "/organizations/{organizationId}/child/{childId}": {
             "post": {
-                "summary": "新增組織成員",
-                "description": "新增組織成員",
+                "summary": "Add a child of specified organization",
+                "description": "Add a child of specified organization",
                 "parameters": [
                     {
-                        "name": "parentId",
+                        "name": "organizationId",
                         "in": "path",
-                        "description": "組織 id",
+                        "description": "organization id",
                         "required": true,
                         "type": "string",
                         "format": "uuid"
@@ -203,7 +299,7 @@
                     {
                         "name": "childId",
                         "in": "path",
-                        "description": "成員 id",
+                        "description": "child id",
                         "required": true,
                         "type": "string",
                         "format": "uuid"
@@ -214,16 +310,16 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "無回應內容"
+                        "description": "No response body"
                     },
                     "400": {
-                        "description": "不合法的 uuid 或成員類型",
+                        "description": "Invalid uuid or child type",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -231,13 +327,13 @@
                 }
             },
             "delete": {
-                "summary": "刪除組織成員",
-                "description": "刪除組織成員",
+                "summary": "Remove a child of specified organization",
+                "description": "Remove a child of specified organization",
                 "parameters": [
                     {
-                        "name": "parentId",
+                        "name": "organizationId",
                         "in": "path",
-                        "description": "組織 id",
+                        "description": "organization id",
                         "required": true,
                         "type": "string",
                         "format": "uuid"
@@ -245,7 +341,7 @@
                     {
                         "name": "childId",
                         "in": "path",
-                        "description": "成員 id",
+                        "description": "child id",
                         "required": true,
                         "type": "string",
                         "format": "uuid"
@@ -256,16 +352,208 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "無回應內容"
+                        "description": "No response body"
                     },
                     "400": {
-                        "description": "不合法的 uuid",
+                        "description": "Invalid uuid",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/children": {
+            "post": {
+                "summary": "Add children of specified organization",
+                "description": "Add children of specified organization",
+                "parameters": [
+                    {
+                        "name": "organizationId",
+                        "in": "path",
+                        "description": "organization id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "childrenIds",
+                        "in": "body",
+                        "description": "children id array (valid type: organization, user)",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "uuid"
+                            }
+                        }
+                    }
+                ],
+                "tags": [
+                    "Organization"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    },
+                    "400": {
+                        "description": "Invalid uuid or child type",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unknown Error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Remove children of specified organization",
+                "description": "Remove children of specified organization",
+                "parameters": [
+                    {
+                        "name": "organizationId",
+                        "in": "path",
+                        "description": "organization id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "childrenIds",
+                        "in": "body",
+                        "description": "children id array",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "uuid"
+                            }
+                        }
+                    }
+                ],
+                "tags": [
+                    "Organization"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    },
+                    "400": {
+                        "description": "Invalid uuid",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unknown Error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/organizations/{organizationId}/parents": {
+            "post": {
+                "summary": "Add parents of specified organization",
+                "description": "Add parents of specified organization",
+                "parameters": [
+                    {
+                        "name": "organizationId",
+                        "in": "path",
+                        "description": "organization id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "parentsIds",
+                        "in": "body",
+                        "description": "parents id array (valid type: group, organization)",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "uuid"
+                            }
+                        }
+                    }
+                ],
+                "tags": [
+                    "Organization"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    },
+                    "400": {
+                        "description": "Invalid uuid or invalid parent type",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unknown Error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Remove parents of specified organization",
+                "description": "Remove parents of specified organization",
+                "parameters": [
+                    {
+                        "name": "organizationId",
+                        "in": "path",
+                        "description": "organization id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "parentsIds",
+                        "in": "body",
+                        "description": "parents id array",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "uuid"
+                            }
+                        }
+                    }
+                ],
+                "tags": [
+                    "Organization"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    },
+                    "400": {
+                        "description": "Invalid uuid",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -275,13 +563,13 @@
         },
         "/groups": {
             "post": {
-                "summary": "新增群組",
-                "description": "新增群組",
+                "summary": "Create group",
+                "description": "Create group",
                 "parameters": [
                     {
                         "name": "body",
                         "in": "body",
-                        "description": " 1. id 屬性將自動產生 2. type 屬性值必須為 group 3. identity 屬性不得與其它群組重複 4. creationDate, modificationDate 屬性將自動產生 5. parents 屬性可填入已存在的群組以建立 child 關係 6. children 屬性可填入已存在的群組、組織、使用者以建立 child 關係",
+                        "description": " 1. id, creationDate and modificationDate will be generated automatically 2. type value must be 'group' 3. identity must be unique in all groups 4. parents must be the group 5. children must be the user, group or organization",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/Party"
@@ -293,19 +581,19 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "群組物件(含 id 屬性)",
+                        "description": "group object include id",
                         "schema": {
                             "$ref": "#/definitions/Party"
                         }
                     },
                     "400": {
-                        "description": "不合法的屬性值",
+                        "description": "invalid property value",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -315,8 +603,8 @@
         },
         "/groups/{id}": {
             "put": {
-                "summary": "修改群組",
-                "description": "修改群組",
+                "summary": "Update a group",
+                "description": "Update a group",
                 "parameters": [
                     {
                         "name": "id",
@@ -329,7 +617,7 @@
                     {
                         "name": "body",
                         "in": "body",
-                        "description": " 1. id 屬性必填 2. type 屬性值必須為 organization 3. identity 屬性不得與其它群組重複 4. creationDate, modificationDate 是唯讀屬性 5. parents 屬性可填入已存在的群組以建立或刪除 child 關係 6. children 屬性可填入已存在的群組、組織、使用者以建立 child 關係",
+                        "description": " 1. id, creationDate and modificationDate will be generated automatically 2. type value must be 'group' 3. identity must be unique in all groups 4. parents must be the group 5. children must be the user, group or organization",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/Party"
@@ -341,16 +629,16 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "無回應內容"
+                        "description": "No response body"
                     },
                     "400": {
-                        "description": "不合法的屬性值",
+                        "description": "invalid property value",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -358,15 +646,15 @@
                 }
             }
         },
-        "/group/{parentId}/child/{childId}": {
+        "/group/{groupId}/child/{childId}": {
             "post": {
-                "summary": "新增群組成員",
-                "description": "新增群組成員",
+                "summary": "Add a child of specified group",
+                "description": "Add a child of specified group",
                 "parameters": [
                     {
-                        "name": "parentId",
+                        "name": "groupId",
                         "in": "path",
-                        "description": "群組 id",
+                        "description": "group id",
                         "required": true,
                         "type": "string",
                         "format": "uuid"
@@ -374,7 +662,7 @@
                     {
                         "name": "childId",
                         "in": "path",
-                        "description": "成員 id",
+                        "description": "child id",
                         "required": true,
                         "type": "string",
                         "format": "uuid"
@@ -385,16 +673,16 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "無回應內容"
+                        "description": "No response body"
                     },
                     "400": {
-                        "description": "不合法的 uuid",
+                        "description": "Invalid uuid or child type",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -402,13 +690,13 @@
                 }
             },
             "delete": {
-                "summary": "刪除群組成員",
-                "description": "刪除群組成員",
+                "summary": "Remove a child of specified group",
+                "description": "Remove a child of specified group",
                 "parameters": [
                     {
-                        "name": "parentId",
+                        "name": "groupId",
                         "in": "path",
-                        "description": "群組 id",
+                        "description": "group id",
                         "required": true,
                         "type": "string",
                         "format": "uuid"
@@ -416,7 +704,7 @@
                     {
                         "name": "childId",
                         "in": "path",
-                        "description": "成員 id",
+                        "description": "child id",
                         "required": true,
                         "type": "string",
                         "format": "uuid"
@@ -427,16 +715,208 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "無回應內容"
+                        "description": "No response body"
                     },
                     "400": {
-                        "description": "不合法的 uuid",
+                        "description": "Invalid uuid",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/groups/{groupId}/children": {
+            "post": {
+                "summary": "Add children of specified group",
+                "description": "Add children of specified group",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "description": "group id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "childrenIds",
+                        "in": "body",
+                        "description": "children id array (valid type: group, organization, user)",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "uuid"
+                            }
+                        }
+                    }
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    },
+                    "400": {
+                        "description": "Invalid uuid or child type",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unknown Error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Remove children of specified group",
+                "description": "Remove children of specified group",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "description": "group id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "childrenIds",
+                        "in": "body",
+                        "description": "children id array",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "uuid"
+                            }
+                        }
+                    }
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    },
+                    "400": {
+                        "description": "Invalid uuid",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unknown Error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/groups/{groupId}/parents": {
+            "post": {
+                "summary": "Add parents of specified group",
+                "description": "Add parents of specified group",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "description": "group id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "parentsIds",
+                        "in": "body",
+                        "description": "parents id array (valid type: group)",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "uuid"
+                            }
+                        }
+                    }
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    },
+                    "400": {
+                        "description": "Invalid uuid or parent type",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unknown Error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Remove parents of specified group",
+                "description": "Remove parents of specified group",
+                "parameters": [
+                    {
+                        "name": "groupId",
+                        "in": "path",
+                        "description": "group id",
+                        "required": true,
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    {
+                        "name": "parentsIds",
+                        "in": "body",
+                        "description": "parents id array",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "format": "uuid"
+                            }
+                        }
+                    }
+                ],
+                "tags": [
+                    "Group"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    },
+                    "400": {
+                        "description": "Invalid uuid",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -446,13 +926,13 @@
         },
         "/parties": {
             "delete": {
-                "summary": "刪除 Party",
-                "description": "刪除 Party",
+                "summary": "Delete party",
+                "description": "Delete party",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "body",
-                        "description": "party uuid array",
+                        "description": "party id array",
                         "required": true,
                         "schema": {
                             "type": "array",
@@ -467,16 +947,16 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "無回應內容"
+                        "description": "No response body"
                     },
                     "400": {
-                        "description": "不合法的 uuid",
+                        "description": "Invalid uuid",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -484,8 +964,8 @@
                 }
             },
             "get": {
-                "summary": "搜尋 Party",
-                "description": "搜尋 Party",
+                "summary": "Search party",
+                "description": "Search party",
                 "parameters": [
                     {
                         "name": "q_predicates",
@@ -496,7 +976,7 @@
                     {
                         "name": "q_predicatesDisjunction",
                         "in": "query",
-                        "description": "指定 q_predicates 裡面的條件為 disjunction",
+                        "description": "specifiy disjunction of q_predicates",
                         "type": "boolean"
                     },
                     {
@@ -508,13 +988,13 @@
                     {
                         "name": "q_onlySize",
                         "in": "query",
-                        "description": "當值為 true 時，僅回傳查詢筆數",
+                        "description": "return the amount of results if value is true",
                         "type": "boolean"
                     },
                     {
                         "name": "q_sort",
                         "in": "query",
-                        "description": "q_sort=+identity,-name (+ 代表 asc, - 代表 desc)",
+                        "description": "q_sort=+identity,-name (+ is asc, - is desc)",
                         "type": "string"
                     },
                     {
@@ -544,13 +1024,13 @@
                         }
                     },
                     "400": {
-                        "description": "不合法的搜尋參數",
+                        "description": "invalid query parameter",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -560,9 +1040,9 @@
         },
         "/parties/{id}": {
             "get": {
-                "summary": "取得 Party",
+                "summary": "Get party by specified id",
                 "operationId": "getById",
-                "description": "根據 id 取得 party.",
+                "description": "Get party by specified id",
                 "parameters": [
                     {
                         "name": "id",
@@ -590,19 +1070,19 @@
                         }
                     },
                     "400": {
-                        "description": "不合法的 uuid 或查詢參數",
+                        "description": "Invalid uuid or query parameter",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "404": {
-                        "description": "id 不存在",
+                        "description": "party not exist",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -612,8 +1092,8 @@
         },
         "/parties/{id}/parents": {
             "get": {
-                "summary": "取得某個 Party 的父物件",
-                "description": "取得某個 Party 的父物件",
+                "summary": "Get parents of specified party",
+                "description": "Get parents of specified party",
                 "parameters": [
                     {
                         "name": "id",
@@ -638,13 +1118,13 @@
                         }
                     },
                     "400": {
-                        "description": "不合法的 uuid",
+                        "description": "Invalid uuid",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -654,8 +1134,8 @@
         },
         "/parties/{id}/children": {
             "get": {
-                "summary": "取得某個 Party 的子成員",
-                "description": "取得某個 Party 的子成員",
+                "summary": "Get children of specified party",
+                "description": "Get children of specified party",
                 "parameters": [
                     {
                         "name": "id",
@@ -680,13 +1160,13 @@
                         }
                     },
                     "400": {
-                        "description": "不合法的 uuid",
+                        "description": "Invalid uuid",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -696,8 +1176,8 @@
         },
         "/parties/{id}/ascendants": {
             "get": {
-                "summary": "取得某個 Party 的所有祖先物件",
-                "description": "取得某個 Party 的所有祖先物件",
+                "summary": "Get ascendants of specified party",
+                "description": "Get ascendants of specified party",
                 "parameters": [
                     {
                         "name": "id",
@@ -722,13 +1202,13 @@
                         }
                     },
                     "400": {
-                        "description": "不合法的 uuid",
+                        "description": "Invalid uuid",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -738,8 +1218,8 @@
         },
         "/parties/{id}/descendants": {
             "get": {
-                "summary": "取得某個 Party 的所有子孫成員",
-                "description": "取得某個 Party 的所有子孫成員",
+                "summary": "Get descendants of specified party",
+                "description": "Get descendants of specified party",
                 "parameters": [
                     {
                         "name": "id",
@@ -764,13 +1244,13 @@
                         }
                     },
                     "400": {
-                        "description": "不合法的 uuid",
+                        "description": "Invalid uuid",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -780,13 +1260,13 @@
         },
         "/parties/enable": {
             "put": {
-                "summary": "啟用 Party",
-                "description": "啟用 Party",
+                "summary": "Enable party",
+                "description": "Enable party",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "body",
-                        "description": "party uuid array",
+                        "description": "party id array",
                         "required": true,
                         "schema": {
                             "type": "array",
@@ -802,16 +1282,16 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "無回應內容"
+                        "description": "No response body"
                     },
                     "400": {
-                        "description": "不合法的 uuid",
+                        "description": "Invalid uuid",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -821,13 +1301,13 @@
         },
         "/parties/disable": {
             "put": {
-                "summary": "停用 Party",
-                "description": "停用 Party",
+                "summary": "Disable party",
+                "description": "Disable party",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "body",
-                        "description": "party uuid array",
+                        "description": "party id array",
                         "required": true,
                         "schema": {
                             "type": "array",
@@ -842,16 +1322,16 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "無回應內容"
+                        "description": "No response body"
                     },
                     "400": {
-                        "description": "不合法的 uuid",
+                        "description": "Invalid uuid",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
-                        "description": "非預期錯誤",
+                        "description": "Unknown Error",
                         "schema": {
                             "$ref": "#/definitions/Error"
                         }
@@ -872,23 +1352,23 @@
                 "id": {
                     "type": "string",
                     "format": "uuid",
-                    "description": "新增 Party 時自動產生，在所有 Party類型當中必須為一"
+                    "description": "auto generated"
                 },
                 "type": {
                     "type": "string",
-                    "description": "必須為 user, organization, group 三者之一"
+                    "description": "enum value (user, organization, group)"
                 },
                 "identity": {
                     "type": "string",
                     "minLength": 2,
                     "maxLength": 16,
                     "pattern": "^[a-zA-z]([\\\\w\\\\_\\\\-])+$",
-                    "description": "Party 識別名稱，在該Party類型當中必須唯一。"
+                    "description": "identity value must be unique in certain party type"
                 },
                 "name": {
                     "type": "string",
                     "maxLength": 16,
-                    "description": "Party 名稱，可為任意字元"
+                    "description": "value can be any character"
                 },
                 "email": {
                     "type": "string",
@@ -901,26 +1381,26 @@
                 "creationDate": {
                     "type": "string",
                     "format": "date-time",
-                    "description": "屬性值自動產生。格式為 yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
+                    "description": "auto generated. pattern yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
                 },
                 "modificationDate": {
                     "type": "string",
                     "format": "date-time",
-                    "description": "屬性值自動產生。格式為 yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
+                    "description": "auto generated. pattern yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
                 },
                 "parents": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/Party"
                     },
-                    "description": "父 Party 物件陣列"
+                    "description": "parent object of the party"
                 },
                 "children": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/Party"
                     },
-                    "description": "子成員 Party 物件陣列"
+                    "description": "child object of the party"
                 }
             }
         },
