@@ -171,11 +171,15 @@ public class PartyRestControllerTest {
         Assert.assertEquals(Collections.emptySet(), getChildren(group1));
 
         // org
-        removeChild(org1, user1);
+        movePartyToOrganization((Organization) org2, user1);
+        Assert.assertEquals(Sets.newHashSet(org2), getChildren(org1));
+        Assert.assertEquals(Sets.newHashSet(user1, user2), getChildren(org2));
+        removeChild(org2, user1);
         removeChildren(org2, Sets.newHashSet(user2));
-        removeParents(org2, Sets.newHashSet(group2, org1));//bug
+        removeParents(org2, Sets.newHashSet(group2, org1));
         Assert.assertEquals(Collections.emptySet(), getParents(org2));
         Assert.assertEquals(Collections.emptySet(), getChildren(org1));
+
 
         // user
         removeParents(user2, Sets.newHashSet(group2));
@@ -380,9 +384,13 @@ public class PartyRestControllerTest {
         return (Party) JsonConverter.getInstance().convertIn(responseJsonObject, typeClassMap.get(party.getType()));
     }
 
+    private void movePartyToOrganization(Organization parent, Party child) throws Exception {
+        mockMvc.perform(put(API_PATH + "/" + typePathMap.get(parent.getType()) + "/" + parent.getId() + "/child/" + child.getId()))
+                .andExpect(status().isOk());
+    }
+
     private void addChild(Party parent, Party child) throws Exception {
         mockMvc.perform(post(API_PATH + "/" + typePathMap.get(parent.getType()) + "/" + parent.getId() + "/child/" + child.getId()))
-                .andDo(loggingResultHandler)
                 .andExpect(status().isOk());
     }
 

@@ -71,6 +71,18 @@ public class OrganizationRestController {
         organizationService.update(org);
     }
 
+    @PutMapping("{parentId}/child/{childId}")
+    public void movePartyToOrganization(@PathVariable String parentId, @PathVariable String childId) {
+        UUID parentUUID = UUID.fromString(parentId);
+        UUID childUUID = UUID.fromString(childId);
+        Party organization = organizationService.getById(parentUUID, Party.RELATION_PARENT);
+        if(organization != null && !organization.getType().equals(Organization.TYPE)) {
+            throw new BadRequestException(String.format("%s is not a organization", parentUUID));
+        }
+        Party child = organizationService.getById(childUUID);
+        organizationService.movePartyToOrganization(child, (Organization) organization);
+    }
+
     @PostMapping("{parentId}/child/{childId}")
     public void addChild(@PathVariable String parentId, @PathVariable String childId) {
         UUID parentUUID = UUID.fromString(parentId);

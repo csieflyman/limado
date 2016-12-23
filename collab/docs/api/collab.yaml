@@ -244,6 +244,35 @@ paths:
           description: Unknown Error
           schema:
             $ref: '#/definitions/Error' 
+    put:
+      summary: Move a party to a specified organization
+      description: Move a party to a specified organization
+      parameters:
+        - name: organizationId
+          in: path
+          description: organization id
+          required: true
+          type: string
+          format: uuid
+        - name: childId
+          in: path
+          description: child id
+          required: true
+          type: string
+          format: uuid
+      tags:
+        - Organization
+      responses:
+        200:
+          description: No response body
+        400:
+          description: Invalid uuid or child type
+          schema:
+            $ref: '#/definitions/Error'
+        default:
+          description: Unknown Error
+          schema:
+            $ref: '#/definitions/Error'
     delete:
       summary: Remove a child of specified organization
       description: Remove a child of specified organization
