@@ -160,8 +160,20 @@ public class PartyRestControllerTest {
 
         Assert.assertEquals(Sets.newHashSet(group2, org1), getParents(org2));
         Assert.assertEquals(Sets.newHashSet(org2, user2), getChildren(group2));
-        Assert.assertEquals(Sets.newHashSet(group2, org1, org2, user1, user2), getDescendants(group1));
-        Assert.assertEquals(Sets.newHashSet(group1, group2, org2, org1), getAscendants(user2));
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        Assert.assertEquals(Sets.newHashSet(group2, org1, org2, user1, user2), getDescendants(group1, params));
+        params.add(QueryParams.Q_PREDICATES, "[TYPE(party) in (User)]");
+        Assert.assertEquals(Sets.newHashSet(user1, user2), getDescendants(group1, params));
+        params.add(QueryParams.Q_ONLY_SIZE, "true");
+        Assert.assertEquals(2, getDescendants(group1, params));
+
+        params = new LinkedMultiValueMap<>();
+        Assert.assertEquals(Sets.newHashSet(group1, group2, org2, org1), getAscendants(user2, params));
+        params.add(QueryParams.Q_PREDICATES, "[TYPE(party) in (Organization)]");
+        Assert.assertEquals(Sets.newHashSet(org2, org1), getAscendants(user2, params));
+        params.add(QueryParams.Q_ONLY_SIZE, "true");
+        Assert.assertEquals(2, getAscendants(user2, params));
 
         // group
         removeChild(group1, user1);
@@ -449,20 +461,28 @@ public class PartyRestControllerTest {
         return JsonConverter.getInstance().convertInToSet(responseJsonArray, Party.class);
     }
 
-    private Set<Party> getDescendants(Party party) throws Exception {
-        MvcResult result = mockMvc.perform(get(API_PATH + "/parties/" + party.getId() + "/descendants").accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
+    private Object getDescendants(Party party, MultiValueMap params) throws Exception {
+        MvcResult result = mockMvc.perform(get(API_PATH + "/parties/" + party.getId() + "/descendants")
+                .accept(MediaType.APPLICATION_JSON_UTF8_VALUE).params(params))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andReturn();
+        if(params.containsKey(QueryParams.Q_ONLY_SIZE) && params.getFirst(QueryParams.Q_ONLY_SIZE).equals("true")) {
+            return Integer.parseInt(result.getResponse().getContentAsString());
+        }
         String responseJsonArray = result.getResponse().getContentAsString();
         return  JsonConverter.getInstance().convertInToSet(responseJsonArray, Party.class);
     }
 
-    private Set<Party> getAscendants(Party party) throws Exception {
-        MvcResult result = mockMvc.perform(get(API_PATH + "/parties/" + party.getId() + "/ascendants").accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
+    private Object getAscendants(Party party, MultiValueMap params) throws Exception {
+        MvcResult result = mockMvc.perform(get(API_PATH + "/parties/" + party.getId() + "/ascendants")
+                .accept(MediaType.APPLICATION_JSON_UTF8_VALUE).params(params))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andReturn();
+        if(params.containsKey(QueryParams.Q_ONLY_SIZE) && params.getFirst(QueryParams.Q_ONLY_SIZE).equals("true")) {
+            return Integer.parseInt(result.getResponse().getContentAsString());
+        }
         String responseJsonArray = result.getResponse().getContentAsString();
         return JsonConverter.getInstance().convertInToSet(responseJsonArray, Party.class);
     }

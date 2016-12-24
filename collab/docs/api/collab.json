@@ -1228,6 +1228,48 @@
                         "required": true,
                         "type": "string",
                         "format": "uuid"
+                    },
+                    {
+                        "name": "q_predicates",
+                        "in": "query",
+                        "description": "q_predicates=[identity = user1;name = James]",
+                        "type": "string"
+                    },
+                    {
+                        "name": "q_predicatesDisjunction",
+                        "in": "query",
+                        "description": "specifiy disjunction of q_predicates",
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "q_fetchRelations",
+                        "in": "query",
+                        "description": "q_fetchRelations=parents,children",
+                        "type": "string"
+                    },
+                    {
+                        "name": "q_onlySize",
+                        "in": "query",
+                        "description": "return the amount of results if value is true",
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "q_sort",
+                        "in": "query",
+                        "description": "q_sort=+identity,-name (+ is asc, - is desc)",
+                        "type": "string"
+                    },
+                    {
+                        "name": "q_offset",
+                        "in": "query",
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    {
+                        "name": "q_limit",
+                        "in": "query",
+                        "type": "integer",
+                        "format": "int32"
                     }
                 ],
                 "tags": [
@@ -1270,6 +1312,48 @@
                         "required": true,
                         "type": "string",
                         "format": "uuid"
+                    },
+                    {
+                        "name": "q_predicates",
+                        "in": "query",
+                        "description": "q_predicates=[identity = user1;name = James]",
+                        "type": "string"
+                    },
+                    {
+                        "name": "q_predicatesDisjunction",
+                        "in": "query",
+                        "description": "specifiy disjunction of q_predicates",
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "q_fetchRelations",
+                        "in": "query",
+                        "description": "q_fetchRelations=parents,children",
+                        "type": "string"
+                    },
+                    {
+                        "name": "q_onlySize",
+                        "in": "query",
+                        "description": "return the amount of results if value is true",
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "q_sort",
+                        "in": "query",
+                        "description": "q_sort=+identity,-name (+ is asc, - is desc)",
+                        "type": "string"
+                    },
+                    {
+                        "name": "q_offset",
+                        "in": "query",
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    {
+                        "name": "q_limit",
+                        "in": "query",
+                        "type": "integer",
+                        "format": "int32"
                     }
                 ],
                 "tags": [

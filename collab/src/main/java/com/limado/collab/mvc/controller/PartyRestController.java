@@ -82,19 +82,39 @@ public class PartyRestController {
 
     @GetMapping(value = "{id}/ascendants", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
-    public Set<Party> getAscendants(@PathVariable String id) {
+    public Object getAscendants(@PathVariable String id, @RequestParam() Map<String, String> requestParam) {
         UUID uuid = UUID.fromString(id);
         Set<Party> ascendants = partyService.getAscendants(uuid);
-        removePartyRelations(ascendants);
+        if(requestParam != null && !requestParam.isEmpty()) {
+            QueryParams params = parseRequestParamToQueryParams(requestParam);
+            List<Party> parties = partyService.find(params);
+            parties.retainAll(ascendants);
+            if (params.isOnlySize()) {
+                return parties.size();
+            }
+            else {
+                return parties;
+            }
+        }
         return ascendants;
     }
 
     @GetMapping(value = "{id}/descendants", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
-    public Set<Party> getDescendants(@PathVariable String id) {
+    public Object getDescendants(@PathVariable String id, @RequestParam() Map<String, String> requestParam) {
         UUID uuid = UUID.fromString(id);
         Set<Party> descendants = partyService.getDescendants(uuid);
-        removePartyRelations(descendants);
+        if(requestParam != null && !requestParam.isEmpty()) {
+            QueryParams params = parseRequestParamToQueryParams(requestParam);
+            List<Party> parties = partyService.find(params);
+            parties.retainAll(descendants);
+            if (params.isOnlySize()) {
+                return parties.size();
+            }
+            else {
+                return parties;
+            }
+        }
         return descendants;
     }
 
