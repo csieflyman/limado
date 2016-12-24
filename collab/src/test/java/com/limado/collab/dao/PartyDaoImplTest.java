@@ -63,7 +63,7 @@ public class PartyDaoImplTest extends AbstractTransactionalJUnit4SpringContextTe
             String identity = "org" + i;
             Organization org = new Organization(identity);
             org.setName(" I am " + identity);
-            //org.setEmail(identity + "@example.com");
+            org.setEmail(identity + "@example.com");
             orgMap.put(identity, org);
         }
         groupMap = new HashMap<>();
@@ -71,7 +71,7 @@ public class PartyDaoImplTest extends AbstractTransactionalJUnit4SpringContextTe
             String identity = "group" + i;
             Group group = new Group(identity);
             group.setName(" I am " + identity);
-            //group.setEmail(identity + "@example.com");
+            group.setEmail(identity + "@example.com");
             groupMap.put(identity, group);
         }
     }
@@ -110,7 +110,7 @@ public class PartyDaoImplTest extends AbstractTransactionalJUnit4SpringContextTe
 
         // paging query and sort, type query
         QueryParams qp1 = new QueryParams();
-        String predicate1 = "[TYPE(party) IN (User,Group,Organization)]";
+        String predicate1 = "[TYPE(party) in (User,Group,Organization)]";
         qp1.put(QueryParams.Q_PREDICATES, predicate1);
         qp1.addOrderBy(new OrderBy("identity", false));
         qp1.setOffset(0);
@@ -230,6 +230,18 @@ public class PartyDaoImplTest extends AbstractTransactionalJUnit4SpringContextTe
         Assert.assertEquals(orgMap.get("org2"), parties.get(0));
         size = partyDao.findSize(qp11);
         Assert.assertEquals(1, size);
+
+        QueryParams qp12 = new QueryParams();
+        String predicate12 = "[children is_null]";
+        qp12.put(QueryParams.Q_PREDICATES, predicate12);
+        parties = partyDao.find(qp12);
+        Assert.assertEquals(Sets.newHashSet(userMap.get("user1"), userMap.get("user2"), userMap.get("user3")), new HashSet(parties));
+
+        QueryParams qp13 = new QueryParams();
+        String predicate13 = "[parents is_null]";
+        qp13.put(QueryParams.Q_PREDICATES, predicate13);
+        parties = partyDao.find(qp13);
+        Assert.assertEquals(Sets.newHashSet(groupMap.get("group1")), new HashSet(parties));
     }
 
     @Test

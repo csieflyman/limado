@@ -40,8 +40,8 @@ public class QueryParamsTest {
     @Test
     public void getPredicateRelations() {
         QueryParams params = new QueryParams();
-        params.put(QueryParams.Q_PREDICATES, "[a.x = x ; b.y = y]");
-        Set<String> predicateRelations = params.getPredicateRelations();
+        params.put(QueryParams.Q_PREDICATES, "[TYPE(entity) in (x,y); a.x = x ; b.y = y]");
+        Set<String> predicateRelations = params.getPredicateProperties();
         Assert.assertEquals(Sets.newHashSet("a", "b"), predicateRelations);
     }
 }

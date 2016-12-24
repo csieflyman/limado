@@ -16,6 +16,8 @@ import java.util.Collection;
  */
 public class Predicate {
 
+    private static final String ENTITY_TYPE_EXPR_PATTERN = "TYPE\\(\\S*\\)";
+
     private String property;
 
     private Operator operator;
@@ -29,15 +31,21 @@ public class Predicate {
     public Predicate(String property, Operator operator, Object value) {
         Preconditions.checkArgument(property != null, "property is null");
         Preconditions.checkArgument(operator != null, "operator is null");
-        Preconditions.checkArgument(value != null, "value is null");
         Preconditions.checkArgument(property.split("\\.").length <= 2, "nested relation or component is not supported now! " + property);
+        if(!Operator.isNoValue(operator)) {
+            Preconditions.checkArgument(value != null, "value is null");
+        }
         if(operator == Operator.IN && value instanceof Collection) {
-            Preconditions.checkArgument(!((Collection) value).isEmpty(), property + " with IN operator can't has empty collection value");
+            Preconditions.checkArgument(!((Collection) value).isEmpty(), property + " with in operator can't has empty collection value");
         }
 
         this.property = property;
         this.operator = operator;
         this.value = value;
+    }
+
+    public boolean isEntityTypePredicate() {
+        return property.matches(ENTITY_TYPE_EXPR_PATTERN);
     }
 
     public String getProperty() {

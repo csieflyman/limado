@@ -111,16 +111,17 @@ public class QueryParams {
         List<Predicate> predicates;
         try {
             predicates = predicateStrings.stream().map(ps -> ps.trim()).filter(ps -> StringUtils.isNotEmpty(ps)).map(ps -> Lists.newArrayList(Splitter.on(" ").split(ps)))
-                    .map(psList -> new Predicate(psList.get(0), Operator.exprValueOf(psList.get(1)), String.join(" ", psList.subList(2, psList.size())))).collect(Collectors.toList());
+                    .map(psList -> new Predicate(psList.get(0), Operator.exprValueOf(psList.get(1)),
+                            psList.size() == 2 ? null : String.join(" ", psList.subList(2, psList.size())))).collect(Collectors.toList());
         }catch (Throwable e) {
             throw new IllegalArgumentException("invalid q_predicate format: " + s, e);
         }
         return predicates;
     }
 
-    public Set<String> getPredicateRelations() {
-        return predicates.stream().map(predicate -> predicate.getProperty()).filter(property -> property.contains("."))
-                .map(property -> property.substring(0, property.indexOf("."))).collect(Collectors.toSet());
+    public Set<String> getPredicateProperties() {
+        return predicates.stream().filter(predicate -> !predicate.isEntityTypePredicate()).map(predicate -> predicate.getProperty())
+                .map(property -> property.contains(".") ? property.substring(0, property.indexOf(".")) : property).collect(Collectors.toSet());
     }
 
     public int getOffset() {

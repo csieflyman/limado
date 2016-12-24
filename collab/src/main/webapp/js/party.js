@@ -209,10 +209,10 @@ $(function () {
 
             function buildChildrenTypeQueryPredicate(partyType) {
                 if(partyType === "group") {
-                    return "TYPE(party) IN (User,Organization,Group)";
+                    return "TYPE(party) in (User,Organization,Group)";
                 }
                 else if(partyType === "organization") {
-                    return "TYPE(party) IN (User,Organization)";
+                    return "TYPE(party) in (User,Organization)";
                 }
                 else {
                     throw new Error("invalid party type " + partyType);
@@ -221,13 +221,13 @@ $(function () {
 
             function buildParentsTypeQueryPredicate(partyType) {
                 if (partyType === "user") {
-                    return "TYPE(party) IN (Organization,Group)";
+                    return "TYPE(party) in (Organization,Group)";
                 }
                 else if(partyType === "group") {
                     return "TYPE(party) = \'Group\'";
                 }
                 else if(partyType === "organization") {
-                    return "TYPE(party) IN (Organization,Group)";
+                    return "TYPE(party) in (Organization,Group)";
                 }
                 else {
                     throw new Error("invalid party type " + partyType);
@@ -460,7 +460,7 @@ $(function () {
 
             var q_identity = identity === "" ? "" : "identity = " + identity + ";";
             var q_name = name === "" ? "" : "name = " + name + ";";
-            var q_types = types === "" ? "" : "TYPE(party) IN (" + types + ");";
+            var q_types = types === "" ? "" : "TYPE(party) in (" + types + ");";
             var q_enabled = enabled === "" ? "" : "enabled = " + enabled + ";";
             var q = q_identity + q_name + q_types + q_enabled;
             q = q.substring(0, q.length - 1);

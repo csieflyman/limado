@@ -102,18 +102,18 @@ abstract class JpaGenericDaoImpl<T extends Identifiable<ID>, ID extends Serializ
             }
         }
 
-        Set<String> predicateRelations = queryParams.getPredicateRelations();
-        for(String relation: predicateRelations) {
-            if(relation.equalsIgnoreCase(entityAlias) || fetchRelations.contains(relation))
+        Set<String> properties = queryParams.getPredicateProperties();
+        for(String property: properties) {
+            if(property.equalsIgnoreCase(entityAlias) || fetchRelations.contains(property))
                 continue;
-
-            if(entityType.getAttribute(relation).isCollection()) {
+            if(entityType.getAttribute(property).isCollection()) {
                 fromClause.append("left join ");
+                fromClause.append(entityAlias).append(".").append(property).append(" ").append(property).append(" ");
             }
-            else {
+            else if(entityType.getAttribute(property).isAssociation()){
                 fromClause.append("inner join ");
+                fromClause.append(entityAlias).append(".").append(property).append(" ").append(property).append(" ");
             }
-            fromClause.append(entityAlias).append(".").append(relation).append(" ").append(relation).append(" ");
         }
 
         selectClause.append(entityAlias).append(" ");
@@ -155,11 +155,18 @@ abstract class JpaGenericDaoImpl<T extends Identifiable<ID>, ID extends Serializ
         selectClause.append("select count(*) ");
         fromClause.append("from ").append(entityType.getName()).append(" ").append(entityAlias).append(" ");
 
-        Set<String> predicateRelations = queryParams.getPredicateRelations();
-        for(String relation: predicateRelations) {
-            if(relation.equalsIgnoreCase(entityAlias))
+        Set<String> properties = queryParams.getPredicateProperties();
+        for(String property: properties) {
+            if(property.equalsIgnoreCase(entityAlias))
                 continue;
-            fromClause.append("left join ").append(entityAlias).append(".").append(relation).append(" ").append(relation).append(" ");
+            if(entityType.getAttribute(property).isCollection()) {
+                fromClause.append("left join ");
+                fromClause.append(entityAlias).append(".").append(property).append(" ").append(property).append(" ");
+            }
+            else if(entityType.getAttribute(property).isAssociation()){
+                fromClause.append("inner join ");
+                fromClause.append(entityAlias).append(".").append(property).append(" ").append(property).append(" ");
+            }
         }
 
         if(!queryParams.getPredicates().isEmpty()) {

@@ -24,8 +24,6 @@ public class QueryUtils {
 
     private static final Logger log = LogManager.getLogger(QueryUtils.class);
 
-    private static final String TYPE_QUERY_PATTERN = "TYPE\\(\\S*\\)";
-
     private QueryUtils(){
 
     }
@@ -38,9 +36,13 @@ public class QueryUtils {
 
         StringBuilder sb = new StringBuilder();
         for(Predicate predicate: predicates) {
-            String operatorExpr = Operator.getExpr(predicate.getOperator());
-            if(predicate.getProperty().matches(TYPE_QUERY_PATTERN)) {
+            Operator operator = predicate.getOperator();
+            String operatorExpr = Operator.getExpr(operator);
+            if(predicate.isEntityTypePredicate()) {
                 sb.append(predicate.getProperty()).append(" ").append(operatorExpr).append(" ").append(predicate.getValue());
+            }
+            else if(Operator.isNoValue(operator)) {
+                sb.append(predicate.getProperty()).append(" ").append(operatorExpr);
             }
             else {
                 String property = predicate.getProperty();
@@ -69,7 +71,7 @@ public class QueryUtils {
 
     public static void setQueryParameterValue(Query query, Collection<Predicate> predicates) {
         for(Predicate predicate: predicates) {
-            if(predicate.getProperty().matches(TYPE_QUERY_PATTERN))
+            if(predicate.isEntityTypePredicate() || Operator.isNoValue(predicate.getOperator()))
                 continue;
             query.setParameter(predicate.getQueryParameterName(), predicate.getQueryParameterValue());
         }
@@ -100,7 +102,7 @@ public class QueryUtils {
 
     private static void populatePredicate(EntityType rootEntityType, Collection<Predicate> predicates) {
         for(Predicate predicate: predicates) {
-            if(predicate.getProperty().matches(TYPE_QUERY_PATTERN))
+            if(predicate.isEntityTypePredicate())
                 continue;
             validatePredicateProperty(rootEntityType, predicate);
         }
@@ -108,7 +110,7 @@ public class QueryUtils {
         populateQueryParameterName(predicates);
 
         for(Predicate predicate: predicates) {
-            if(predicate.getProperty().matches(TYPE_QUERY_PATTERN))
+            if(predicate.isEntityTypePredicate())
                 continue;
             populateQueryParameterValue(rootEntityType, predicate);
         }
@@ -142,6 +144,10 @@ public class QueryUtils {
     }
 
     private static void populateQueryParameterValue(EntityType rootEntityType, Predicate predicate) {
+        if(Operator.isNoValue(predicate.getOperator())) {
+            return;
+        }
+
         String propertyName = predicate.getTopProperty();
         Attribute attribute = rootEntityType.getAttribute(propertyName);
         if(attribute.isAssociation()) {
@@ -151,7 +157,8 @@ public class QueryUtils {
         Class queryParameterValueClass = attribute.getJavaType();
         Object queryParameterValue;
         Object value = predicate.getValue();
-        if(predicate.getOperator() == Operator.IN) {
+        Operator operator = predicate.getOperator();
+        if(operator == Operator.IN) {
             if(value instanceof String) {
                 String valueString = ((String)value).trim();
                 if(!(valueString.startsWith("(") && valueString.endsWith(")"))) {
@@ -162,7 +169,7 @@ public class QueryUtils {
             }
             else if(value instanceof Collection){
                 if(((Collection) value).isEmpty()) {
-                    throw new IllegalArgumentException(String.format("%s with IN operator can't has empty collection value", propertyName));
+                    throw new IllegalArgumentException(String.format("%s with in operator can't has empty collection value", propertyName));
                 }
                 List<Object> queryParameterValueList = new ArrayList<>();
                 for(Object element: (Collection) value) {
