@@ -8,7 +8,6 @@ import com.limado.collab.model.Group;
 import com.limado.collab.model.Organization;
 import com.limado.collab.model.Party;
 import com.limado.collab.model.User;
-import com.limado.collab.mvc.exception.BadRequestException;
 import com.limado.collab.mvc.exception.ResourceNotFoundException;
 import com.limado.collab.service.GroupService;
 import com.limado.collab.service.OrganizationService;
@@ -86,7 +85,8 @@ public class PartyRestController {
         UUID uuid = UUID.fromString(id);
         Set<Party> ascendants = partyService.getAscendants(uuid);
         if(requestParam != null && !requestParam.isEmpty()) {
-            QueryParams params = parseRequestParamToQueryParams(requestParam);
+            QueryParams params = new QueryParams();
+            params.putAll(requestParam);
             List<Party> parties = partyService.find(params);
             parties.retainAll(ascendants);
             if (params.isOnlySize()) {
@@ -105,7 +105,8 @@ public class PartyRestController {
         UUID uuid = UUID.fromString(id);
         Set<Party> descendants = partyService.getDescendants(uuid);
         if(requestParam != null && !requestParam.isEmpty()) {
-            QueryParams params = parseRequestParamToQueryParams(requestParam);
+            QueryParams params = new QueryParams();
+            params.putAll(requestParam);
             List<Party> parties = partyService.find(params);
             parties.retainAll(descendants);
             if (params.isOnlySize()) {
@@ -122,7 +123,8 @@ public class PartyRestController {
     @ResponseBody
     public Object find(@RequestParam() Map<String, String> requestParam) {
         log.debug("find requestParam: " + requestParam);
-        QueryParams params = parseRequestParamToQueryParams(requestParam);
+        QueryParams params = new QueryParams();
+        params.putAll(requestParam);
         if (params.isOnlySize()) {
             return partyService.findSize(params);
         } else {
@@ -163,37 +165,6 @@ public class PartyRestController {
         if(partyTypeMap.get(User.TYPE) != null) {
             partyTypeMap.get(User.TYPE).forEach(party -> userService.delete((User)party));
         }
-    }
-
-    private QueryParams parseRequestParamToQueryParams(Map<String, String> requestParam) {
-        QueryParams params = new QueryParams();
-
-        if (requestParam == null)
-            return params;
-
-        if (requestParam.get(QueryParams.Q_OFFSET) != null) {
-            params.put(QueryParams.Q_OFFSET, requestParam.get(QueryParams.Q_OFFSET));
-        }
-        if (requestParam.get(QueryParams.Q_LIMIT) != null) {
-            params.put(QueryParams.Q_LIMIT, requestParam.get(QueryParams.Q_LIMIT));
-        }
-        if (requestParam.get(QueryParams.Q_SORT) != null) {
-            params.put(QueryParams.Q_SORT, requestParam.get(QueryParams.Q_SORT));
-        }
-        if (requestParam.get(QueryParams.Q_ONLY_SIZE) != null) {
-            params.put(QueryParams.Q_ONLY_SIZE, requestParam.get(QueryParams.Q_ONLY_SIZE));
-        }
-        if (requestParam.get(QueryParams.Q_PREDICATES) != null) {
-            params.put(QueryParams.Q_PREDICATES, requestParam.get(QueryParams.Q_PREDICATES));
-        }
-        if (requestParam.get(QueryParams.Q_PREDICATES_DISJUNCTION) != null) {
-            params.put(QueryParams.Q_PREDICATES_DISJUNCTION, requestParam.get(QueryParams.Q_PREDICATES_DISJUNCTION));
-        }
-        if (requestParam.get(QueryParams.Q_FETCH_RELATIONS) != null) {
-            params.put(QueryParams.Q_FETCH_RELATIONS, requestParam.get(QueryParams.Q_FETCH_RELATIONS));
-        }
-
-        return params;
     }
 
     // do not serialize relations

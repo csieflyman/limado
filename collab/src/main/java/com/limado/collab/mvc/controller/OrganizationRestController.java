@@ -23,10 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -173,5 +170,25 @@ public class OrganizationRestController {
         params.addPredicate(new Predicate("id", Operator.IN, parentsUUIDs));
         List<Party> parents = organizationService.find(params);
         organizationService.removeParents((Organization) organization, new HashSet<>(parents));
+    }
+
+    @GetMapping(value = "{id}/descendants", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseBody
+    public Object getDescendants(@PathVariable String id, @RequestParam() Map<String, String> requestParam) {
+        UUID uuid = UUID.fromString(id);
+        Set<Party> descendants = organizationService.getDescendants(uuid);
+        if(requestParam != null && !requestParam.isEmpty()) {
+            QueryParams params = new QueryParams();
+            params.putAll(requestParam);
+            List<Party> parties = organizationService.find(params);
+            parties.retainAll(descendants);
+            if (params.isOnlySize()) {
+                return parties.size();
+            }
+            else {
+                return parties;
+            }
+        }
+        return descendants;
     }
 }

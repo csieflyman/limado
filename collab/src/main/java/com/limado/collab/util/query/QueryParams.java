@@ -41,7 +41,9 @@ public class QueryParams {
     public static final String Q_FETCH_RELATIONS = "q_fetchRelations";
     public static final String Q_FETCH_PROPERTIES = "q_fetchProperties";
 
-    public void put(Map<String, String> paramMap) {
+    public void putAll(Map<String, String> paramMap) {
+        if(paramMap == null)
+            return;
         paramMap.forEach((key, value) -> put(key, value));
     }
 

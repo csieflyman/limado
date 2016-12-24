@@ -175,6 +175,13 @@ public class PartyRestControllerTest {
         params.add(QueryParams.Q_ONLY_SIZE, "true");
         Assert.assertEquals(2, getAscendants(user2, params));
 
+        params = new LinkedMultiValueMap<>();
+        Assert.assertEquals(Sets.newHashSet(org2, user1, user2), getOrganizationDescendants(org1, params));
+        params.add(QueryParams.Q_PREDICATES, "[TYPE(party) in (Organization)]");
+        Assert.assertEquals(Sets.newHashSet(org2), getOrganizationDescendants(org1, params));
+        params.add(QueryParams.Q_ONLY_SIZE, "true");
+        Assert.assertEquals(1, getOrganizationDescendants(org1, params));
+
         // group
         removeChild(group1, user1);
         removeChildren(group1, Sets.newHashSet(org1));
@@ -485,5 +492,18 @@ public class PartyRestControllerTest {
         }
         String responseJsonArray = result.getResponse().getContentAsString();
         return JsonConverter.getInstance().convertInToSet(responseJsonArray, Party.class);
+    }
+
+    private Object getOrganizationDescendants(Party party, MultiValueMap params) throws Exception {
+        MvcResult result = mockMvc.perform(get(API_PATH + "/organizations/" + party.getId() + "/descendants")
+                .accept(MediaType.APPLICATION_JSON_UTF8_VALUE).params(params))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andReturn();
+        if(params.containsKey(QueryParams.Q_ONLY_SIZE) && params.getFirst(QueryParams.Q_ONLY_SIZE).equals("true")) {
+            return Integer.parseInt(result.getResponse().getContentAsString());
+        }
+        String responseJsonArray = result.getResponse().getContentAsString();
+        return  JsonConverter.getInstance().convertInToSet(responseJsonArray, Party.class);
     }
 }
