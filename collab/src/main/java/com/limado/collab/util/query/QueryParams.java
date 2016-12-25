@@ -78,7 +78,7 @@ public class QueryParams {
                         .stream().map(property -> property.trim()).collect(Collectors.toSet()));
                 break;
             default:
-                throw new IllegalArgumentException("unknown query parameter: " + param);
+                //throw new IllegalArgumentException("unknown query parameter: " + param);
         }
     }
 
