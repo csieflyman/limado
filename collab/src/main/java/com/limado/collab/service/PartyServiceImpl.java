@@ -78,27 +78,23 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         party.setParents(oldParty.getParents());
         partyDao.update(party);
 
-        if(children != null) {
-            Collection<Party> addChildren = CollectionUtils.subtract(children, oldParty.getChildren());
-            Collection<Party> removeChildren = CollectionUtils.subtract(oldParty.getChildren(), children);
-            if(!addChildren.isEmpty()) {
-                party = get(party, Party.RELATION_CHILDREN);
-                addChildren(party, new HashSet<>(addChildren));
-            }
-            if(!removeChildren.isEmpty()) {
-                party = get(party, Party.RELATION_CHILDREN);
-                removeChildren(party, new HashSet<>(removeChildren));
-            }
+        Collection<Party> addParents = parents == null ? Collections.emptySet() : CollectionUtils.subtract(parents, oldParty.getParents());
+        Collection<Party> removeParents = parents == null ? Collections.emptySet() : CollectionUtils.subtract(oldParty.getParents(), parents);
+        Collection<Party> addChildren = children == null ? Collections.emptySet() : CollectionUtils.subtract(children, oldParty.getChildren());
+        Collection<Party> removeChildren = children == null ? Collections.emptySet() : CollectionUtils.subtract(oldParty.getChildren(), children);
+        if(!removeChildren.isEmpty()) {
+            party = get(party, Party.RELATION_CHILDREN);
+            removeChildren(party, new HashSet<>(removeChildren));
         }
-        if(parents != null) {
-            Collection<Party> addParents = CollectionUtils.subtract(parents, oldParty.getParents());
-            Collection<Party> removeParents = CollectionUtils.subtract(oldParty.getParents(), parents);
-            if(!addParents.isEmpty()) {
-                addParents(party, new HashSet<>(addParents));
-            }
-            if(!removeParents.isEmpty()) {
-                removeParents(party, new HashSet<>(removeParents));
-            }
+        if(!removeParents.isEmpty()) {
+            removeParents(party, new HashSet<>(removeParents));
+        }
+        if(!addChildren.isEmpty()) {
+            party = get(party, Party.RELATION_CHILDREN);
+            addChildren(party, new HashSet<>(addChildren));
+        }
+        if(!addParents.isEmpty()) {
+            addParents(party, new HashSet<>(addParents));
         }
     }
 
