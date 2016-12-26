@@ -1,0 +1,41 @@
+@import "common.css";
+
+#action_selected{
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 20px;
+}
+
+#party_form label, #party_form input { display:block; }
+#party_form input.text { margin-bottom:12px; width:95%; padding: .4em; }
+#party_form fieldset { padding:5px; margin-top:25px; border: 1px solid;}
+
+#party_relations{
+    margin: 20px auto 0px;
+}
+#party_parents{
+    margin: 20px auto 0px;
+}
+#parents_auto_complete {
+    margin: 10px auto 0px;
+    text-align: center;
+}
+#party_children{
+    margin: 20px auto 0px;
+}
+#children_auto_complete {
+    margin: 10px auto 0px;
+    text-align: center;
+}
+
+.dataTable {
+    border: 1px solid;
+    border-collapse: collapse;
+    text-align: center;
+}
+.dataTable th, .dataTable tr, .dataTable td{
+    border: 1px solid;
+}
+.dataTable tr:hover {
+    background-color: whitesmoke !important;
+}

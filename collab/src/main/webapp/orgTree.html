@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright © 2016. Limado Inc. All rights reserved
+  -->
+
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width">
+    <title>Party</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="css/jquery-ui/jquery-ui.structure.min.css">
+    <link rel="stylesheet" type="text/css" href="css/jquery-ui/jquery-ui.theme.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.3/themes/default/style.min.css">
+    <link rel="stylesheet" type="text/css" href="css/orgTree.css">
+    <script src="js/jquery-3.1.0.min.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.3/jstree.min.js"></script>
+    <script src="js/orgTree.js"></script>
+</head>
+<body>
+<div id="container">
+    <div id="header">
+        <span>Party Demo</span>
+    </div>
+    <div id="content" class="clearfix">
+        <div id="sidenav">
+            <ul>
+                <li><a target="_top" href="party.html">Manage Party</a></li>
+                <li><a target="_top" href="orgTree.html">Organization Tree</a></li>
+                <li><a target="_top" href="/docs/api/collab.html">REST API Doc</a></li>
+            </ul>
+        </div>
+        <div id="main">
+            <div id="action_selected">
+                <fieldset>
+                    <legend>Selected Action</legend>
+                    <input type="button" id="enable" class="btn" value="Enable"/>
+                    <input type="button" id="disable" class="btn" value="Disable"/>
+                    <input type="button" id="delete" class="btn" value="Delete"/>
+                </fieldset>
+            </div>
+            <div id="party_form_dialog">
+                <p class="validateTips"></p>
+                <form id="party_form">
+                    <fieldset>
+                        <label for="identity">Identity</label>
+                        <input type="text" name="identity" id="identity" value="" class="text ui-widget-content ui-corner-all">
+                        <label for="name">Name</label>
+                        <input type="text" name="name" id="name" value="" class="text ui-widget-content ui-corner-all">
+                        <label for="email">Email</label>
+                        <input type="text" name="email" id="email" value="" class="text ui-widget-content ui-corner-all">
+                        <label for="enabled">Enabled</label>
+                        <input type="checkbox" name="enabled" id="enabled" value="true" checked>
+
+                        <!-- Allow form submission with keyboard without duplicating the dialog button -->
+                        <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+                    </fieldset>
+                </form>
+                <div id="party_relations">
+                    <div id="party_parents">
+                        <table id="parents_table" class="dataTable">
+                            <caption>Parents</caption>
+                            <thead>
+                            <tr>
+                                <th>id</th>
+                                <th>identity</th>
+                                <th>name</th>
+                                <th>type</th>
+                                <th>action</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>id</td>
+                                <td>identity</td>
+                                <td>name</td>
+                                <td>type</td>
+                                <td></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <div id="parents_auto_complete">
+                            <label for="parents_identity">Add Parents: </label>
+                            <input id="parents_identity">
+                        </div>
+                    </div>
+                    <div id="party_children">
+                        <table id="children_table" class="dataTable">
+                            <caption>Children</caption>
+                            <thead>
+                            <tr>
+                                <th>id</th>
+                                <th>identity</th>
+                                <th>name</th>
+                                <th>type</th>
+                                <th>action</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>id</td>
+                                <td>identity</td>
+                                <td>name</td>
+                                <td>type</td>
+                                <td></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <div id="children_auto_complete">
+                            <label for="children_identity">Add Children: </label>
+                            <input id="children_identity">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="jstree1">
+
+            </div>
+        </div>
+    </div>
+    <div id="footer">
+        <p><small>Copyright&copy; Limado All Rights Reserved.</small></p>
+    </div>
+</div>
+</body>
+</html>
