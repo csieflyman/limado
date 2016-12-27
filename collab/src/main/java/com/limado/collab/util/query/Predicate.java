@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.util.query;
 
 import com.google.common.base.Preconditions;
@@ -32,10 +28,10 @@ public class Predicate {
         Preconditions.checkArgument(property != null, "property is null");
         Preconditions.checkArgument(operator != null, "operator is null");
         Preconditions.checkArgument(property.split("\\.").length <= 2, "nested relation or component is not supported now! " + property);
-        if(!Operator.isNoValue(operator)) {
+        if (!Operator.isNoValue(operator)) {
             Preconditions.checkArgument(value != null, "value is null");
         }
-        if(operator == Operator.IN && value instanceof Collection) {
+        if (operator == Operator.IN && value instanceof Collection) {
             Preconditions.checkArgument(!((Collection) value).isEmpty(), property + " with in operator can't has empty collection value");
         }
 

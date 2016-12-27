@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.model;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -15,13 +11,13 @@ import java.util.UUID;
  * @author csieflyman
  */
 @Entity
-@Table(name="interval_tree")
-public class PartyIntervalTreeNode implements IntervalTreeNode<UUID>{
+@Table(name = "interval_tree")
+public class PartyIntervalTreeNode implements IntervalTreeNode<UUID> {
 
     public static final String TREE_TYPE = "member";
 
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @Basic(optional = false)

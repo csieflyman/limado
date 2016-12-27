@@ -1,6 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
 package com.limado.collab.dao;
 
 import com.google.common.base.Preconditions;
@@ -40,7 +37,7 @@ abstract class DagEdgeDaoImpl<DagEdgeType extends DagEdge<VertexID>, VertexID ex
 
         Set incomingVertices = findIncomingVertices(startVertexId);
         boolean hasCycle = incomingVertices.contains(endVertexId);
-        if(hasCycle){
+        if (hasCycle) {
             throw new IllegalArgumentException(String.format("add edge from %s to %s will cause cycle", startVertexId, endVertexId));
         }
 
@@ -73,8 +70,8 @@ abstract class DagEdgeDaoImpl<DagEdgeType extends DagEdge<VertexID>, VertexID ex
         //step 2: A to B's outgoing edges
         StringBuilder insertSQL2 = new StringBuilder();
         insertSQL2.append("insert into ").append(getEntityName()).append("(entryEdgeId, directEdgeId, exitEdgeId, startVertexId, endVertexId, hops, dagId) ")
-            .append("select ").append(id).append("L, ").append(id).append("L, id, :startVertexId, ")
-            .append("endVertexId, (hops + 1), :dagId ")
+                .append("select ").append(id).append("L, ").append(id).append("L, id, :startVertexId, ")
+                .append("endVertexId, (hops + 1), :dagId ")
                 .append("from ").append(getEntityName()).append(" where startVertexId = :endVertexId");
         log.debug(insertSQL2.toString());
         query = entityManager.createQuery(insertSQL2.toString());
@@ -86,10 +83,10 @@ abstract class DagEdgeDaoImpl<DagEdgeType extends DagEdge<VertexID>, VertexID ex
         // step 3: A’s incoming edges to end vertex of B's outgoing edges
         StringBuilder insertSQL3 = new StringBuilder();
         insertSQL3.append("insert into ").append(getEntityName()).append("(entryEdgeId, directEdgeId, exitEdgeId, startVertexId, endVertexId, hops, dagId) ")
-            .append("select edgeA.id, ").append(id).append("L, edgeB.id, edgeA.startVertexId, edgeB.endVertexId, (edgeA.hops + edgeB.hops + 1), :dagId ")
-            .append("from ").append(getEntityName()).append(" edgeA, ").append(getEntityName()).append(" edgeB ")
-            .append("where edgeA.endVertexId = :startVertexId ")
-            .append("and edgeB.startVertexId = :endVertexId");
+                .append("select edgeA.id, ").append(id).append("L, edgeB.id, edgeA.startVertexId, edgeB.endVertexId, (edgeA.hops + edgeB.hops + 1), :dagId ")
+                .append("from ").append(getEntityName()).append(" edgeA, ").append(getEntityName()).append(" edgeB ")
+                .append("where edgeA.endVertexId = :startVertexId ")
+                .append("and edgeB.startVertexId = :endVertexId");
         log.debug(insertSQL3.toString());
         query = entityManager.createQuery(insertSQL3.toString());
         query.setParameter("startVertexId", startVertexId);
@@ -112,8 +109,7 @@ abstract class DagEdgeDaoImpl<DagEdgeType extends DagEdge<VertexID>, VertexID ex
         List<DagEdgeType> edges = find(params);
         if (edges.isEmpty()) {
             throw new IllegalArgumentException(String.format("edge from %s to %s does not exist", startVertexId, endVertexId));
-        }
-        else {
+        } else {
             DagEdgeType edge = edges.get(0);
             removeEdges(edge.getId());
         }

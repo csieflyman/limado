@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.mvc.controller;
 
 import com.limado.collab.model.Party;
@@ -46,7 +42,7 @@ public class UserRestController {
     public ResponseEntity create(@RequestBody UserForm form, BindingResult result) {
         log.debug("create userForm: " + form);
         new PartyFormValidator().validate(form, result);
-        if(result.hasErrors()) {
+        if (result.hasErrors()) {
             log.debug(ValidationUtils.buildErrorMessage(result));
             throw new BadRequestException("invalid user data.", null, ValidationUtils.buildErrorMessage(result));
         }
@@ -60,11 +56,11 @@ public class UserRestController {
     @PutMapping(value = "{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public void update(@PathVariable String id, @RequestBody UserForm form, BindingResult result) {
         log.debug("update userForm: " + form);
-        if(!form.getId().toString().equals(id)) {
+        if (!form.getId().toString().equals(id)) {
             throw new BadRequestException("invalid uuid.", null, String.format("path uuid %s isn't the same as uuid %s in request body", id, form.getId()));
         }
         new PartyFormValidator().validate(form, result);
-        if(result.hasErrors()) {
+        if (result.hasErrors()) {
             log.debug(ValidationUtils.buildErrorMessage(result));
             throw new BadRequestException("invalid user data.", null, ValidationUtils.buildErrorMessage(result));
         }
@@ -80,7 +76,7 @@ public class UserRestController {
         UUID childUUID = UUID.fromString(childId);
         Set<UUID> parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toSet());
         Party user = userService.getById(childUUID);
-        if(user != null && !user.getType().equals(User.TYPE)) {
+        if (user != null && !user.getType().equals(User.TYPE)) {
             throw new BadRequestException(String.format("%s is not a user", user));
         }
         QueryParams params = new QueryParams();
@@ -97,7 +93,7 @@ public class UserRestController {
         UUID childUUID = UUID.fromString(childId);
         Set<UUID> parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toSet());
         Party user = userService.getById(childUUID);
-        if(user != null && !user.getType().equals(User.TYPE)) {
+        if (user != null && !user.getType().equals(User.TYPE)) {
             throw new BadRequestException(String.format("%s is not a user", user));
         }
         QueryParams params = new QueryParams();

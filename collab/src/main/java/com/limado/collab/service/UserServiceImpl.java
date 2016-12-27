@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.service;
 
 import com.google.common.base.Preconditions;
@@ -29,14 +25,14 @@ public class UserServiceImpl extends PartyServiceImpl<User> implements UserServi
 
     @Override
     public void addChildren(User user, Set<Party> children) {
-        if(children.isEmpty())
+        if (children.isEmpty())
             return;
         throw new UnsupportedOperationException(String.format("user %s can't add children", user));
     }
 
     @Override
     public void removeChildren(User user, Set<Party> children) {
-        if(children.isEmpty())
+        if (children.isEmpty())
             return;
         throw new UnsupportedOperationException(String.format("user %s can't remove children", user));
     }
@@ -56,18 +52,18 @@ public class UserServiceImpl extends PartyServiceImpl<User> implements UserServi
         Preconditions.checkArgument(child != null, "child must not be null");
         Preconditions.checkArgument(parents != null, "parents must not be null");
 
-        if(parents.isEmpty())
+        if (parents.isEmpty())
             return;
-        if(parents.stream().anyMatch(parent -> parent.getType().equals(User.TYPE))) {
+        if (parents.stream().anyMatch(parent -> parent.getType().equals(User.TYPE))) {
             throw new IllegalArgumentException(String.format("user %s can't add user parent %s", child, parents));
         }
-        if(parents.stream().filter(parent -> parent.getType().equals(Organization.TYPE)).count() > 1) {
+        if (parents.stream().filter(parent -> parent.getType().equals(Organization.TYPE)).count() > 1) {
             throw new IllegalArgumentException(String.format("user %s can't add above two organization parents %s", child, parents));
         }
 
         super.addParents(child, parents);
-        for(Party parent: parents) {
-            if(parent.getType().equals(Organization.TYPE)) {
+        for (Party parent : parents) {
+            if (parent.getType().equals(Organization.TYPE)) {
                 intervalTreeDao.addChild(parent.getId(), child.getId());
             }
         }
@@ -78,11 +74,11 @@ public class UserServiceImpl extends PartyServiceImpl<User> implements UserServi
         Preconditions.checkArgument(child != null, "child must not be null");
         Preconditions.checkArgument(parents != null, "parents must not be null");
 
-        if(parents.isEmpty())
+        if (parents.isEmpty())
             return;
 
-        for(Party parent: parents) {
-            if(parent.getType().equals(Organization.TYPE)) {
+        for (Party parent : parents) {
+            if (parent.getType().equals(Organization.TYPE)) {
                 intervalTreeDao.removeChild(parent.getId(), child.getId());
             }
         }

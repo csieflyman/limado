@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.dao;
 
 import com.google.common.base.Preconditions;
@@ -37,7 +33,7 @@ public class PartyDaoImpl extends JpaGenericDaoImpl<Party, UUID> implements Part
 
         parent = loadParent(parent);
         child = loadChild(child);
-        if(parent.getChildren().contains(child)) {
+        if (parent.getChildren().contains(child)) {
             throw new IllegalArgumentException(String.format("%s is already a child of %s", child, parent));
         }
         parent.addChild(child);
@@ -51,7 +47,7 @@ public class PartyDaoImpl extends JpaGenericDaoImpl<Party, UUID> implements Part
 
         parent = loadParent(parent);
         child = loadChild(child);
-        if(!parent.getChildren().contains(child)) {
+        if (!parent.getChildren().contains(child)) {
             throw new IllegalArgumentException(String.format("%s is not a child of %s", child, parent));
         }
         parent.removeChild(child);
@@ -63,16 +59,16 @@ public class PartyDaoImpl extends JpaGenericDaoImpl<Party, UUID> implements Part
         Preconditions.checkArgument(parent != null, "parent must not be null");
         Preconditions.checkArgument(children != null, "children must not be null");
 
-        if(children.isEmpty())
+        if (children.isEmpty())
             return;
 
         parent = loadParent(parent);
         children = loadChildren(children);
-        if(CollectionUtils.containsAny(parent.getChildren(), children)) {
+        if (CollectionUtils.containsAny(parent.getChildren(), children)) {
             throw new IllegalArgumentException(String.format("%s already contains some children %s", parent, children));
         }
         children = new HashSet<>(children);
-        for(Party child: children) {
+        for (Party child : children) {
             parent.addChild(child);
         }
         entityManager.merge(parent);
@@ -83,16 +79,16 @@ public class PartyDaoImpl extends JpaGenericDaoImpl<Party, UUID> implements Part
         Preconditions.checkArgument(parent != null, "parent must not be null");
         Preconditions.checkArgument(children != null, "children must not be null");
 
-        if(children.isEmpty())
+        if (children.isEmpty())
             return;
 
         parent = loadParent(parent);
         children = loadChildren(children);
-        if(!CollectionUtils.isSubCollection(children, parent.getChildren())) {
+        if (!CollectionUtils.isSubCollection(children, parent.getChildren())) {
             throw new IllegalArgumentException(String.format("%s doesn't contains some children %s", parent, children));
         }
         children = new HashSet<>(children);
-        for(Party child: children) {
+        for (Party child : children) {
             parent.removeChild(child);
         }
         entityManager.merge(parent);
@@ -103,13 +99,13 @@ public class PartyDaoImpl extends JpaGenericDaoImpl<Party, UUID> implements Part
         Preconditions.checkArgument(child != null, "child must not be null");
         Preconditions.checkArgument(parents != null, "parents must not be null");
 
-        if(parents.isEmpty())
+        if (parents.isEmpty())
             return;
 
         child = loadChild(child);
         parents = loadParents(parents);
-        for(Party parent: parents) {
-            if(parent.getChildren().contains(child)) {
+        for (Party parent : parents) {
+            if (parent.getChildren().contains(child)) {
                 throw new IllegalArgumentException(String.format("%s is already a child of %s", child, parent));
             }
             parent.addChild(child);
@@ -122,13 +118,13 @@ public class PartyDaoImpl extends JpaGenericDaoImpl<Party, UUID> implements Part
         Preconditions.checkArgument(child != null, "child must not be null");
         Preconditions.checkArgument(parents != null, "parents must not be null");
 
-        if(parents.isEmpty())
+        if (parents.isEmpty())
             return;
 
         child = loadChild(child);
         parents = loadParents(parents);
-        for(Party parent: parents) {
-            if(!parent.getChildren().contains(child)) {
+        for (Party parent : parents) {
+            if (!parent.getChildren().contains(child)) {
                 throw new IllegalArgumentException(String.format("%s is not a child of %s", child, parent));
             }
             parent.removeChild(child);
@@ -137,7 +133,7 @@ public class PartyDaoImpl extends JpaGenericDaoImpl<Party, UUID> implements Part
     }
 
     private Party loadParent(Party parent) {
-        if(isLoadedParent(parent))
+        if (isLoadedParent(parent))
             return parent;
 
         UUID parentId = parent.getId();
@@ -147,14 +143,14 @@ public class PartyDaoImpl extends JpaGenericDaoImpl<Party, UUID> implements Part
         List<Party> parties = find(params);
         parent = parties.isEmpty() ? null : parties.get(0);
 
-        if(parent == null) {
+        if (parent == null) {
             throw new IllegalArgumentException(String.format("party %s is not exist", parentId));
         }
         return parent;
     }
 
     private Set<Party> loadParents(Set<Party> parents) {
-        if(parents.stream().allMatch(this::isLoadedChild))
+        if (parents.stream().allMatch(this::isLoadedChild))
             return parents;
 
         Set<UUID> parentsIds = parents.stream().map(Party::getId).collect(Collectors.toSet());
@@ -162,7 +158,7 @@ public class PartyDaoImpl extends JpaGenericDaoImpl<Party, UUID> implements Part
         params.addPredicate(new Predicate("id", Operator.IN, parentsIds));
         params.setFetchRelations(Sets.newHashSet(Party.RELATION_CHILDREN));
         parents = new HashSet<>(find(params));
-        if(parents.size() != parentsIds.size()) {
+        if (parents.size() != parentsIds.size()) {
             Set<UUID> foundParentsIds = parents.stream().map(Party::getId).collect(Collectors.toSet());
             throw new IllegalArgumentException(String.format("parents id %s are not exist", CollectionUtils.subtract(parentsIds, foundParentsIds)));
         }
@@ -170,26 +166,26 @@ public class PartyDaoImpl extends JpaGenericDaoImpl<Party, UUID> implements Part
     }
 
     private Party loadChild(Party child) {
-        if(isLoadedChild(child))
+        if (isLoadedChild(child))
             return child;
 
         UUID childId = child.getId();
         child = getById(childId);
-        if(child == null) {
+        if (child == null) {
             throw new IllegalArgumentException(String.format("party %s is not exist", childId));
         }
         return child;
     }
 
     private Set<Party> loadChildren(Set<Party> children) {
-        if(children.stream().allMatch(this::isLoadedChild))
+        if (children.stream().allMatch(this::isLoadedChild))
             return children;
 
         Set<UUID> childrenIds = children.stream().map(Party::getId).collect(Collectors.toSet());
         QueryParams params = new QueryParams();
         params.addPredicate(new Predicate("id", Operator.IN, childrenIds));
         children = new HashSet<>(find(params));
-        if(children.size() != childrenIds.size()) {
+        if (children.size() != childrenIds.size()) {
             Set<UUID> foundChildrenIds = children.stream().map(Party::getId).collect(Collectors.toSet());
             throw new IllegalArgumentException(String.format("children id %s are not exist", CollectionUtils.subtract(childrenIds, foundChildrenIds)));
         }

@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.util.converter;
 
 import com.google.common.collect.Sets;
@@ -59,13 +55,13 @@ public class PartySerializerTest {
         Assert.assertEquals(Sets.newHashSet("group2", "group3"), new HashSet(parentsIdentityList));
         Assert.assertEquals(Sets.newHashSet("user1", "user2"), new HashSet(childrenIdentityList));
 
-        Assert.assertTrue(((List)JsonPath.read(document, "$.parents[0].parents")).isEmpty());
-        Assert.assertTrue(((List)JsonPath.read(document, "$.parents[1].parents")).isEmpty());
-        Assert.assertTrue(((List)JsonPath.read(document, "$.parents[0].children")).isEmpty());
-        Assert.assertTrue(((List)JsonPath.read(document, "$.parents[1].children")).isEmpty());
-        Assert.assertTrue(((List)JsonPath.read(document, "$.children[0].parents")).isEmpty());
-        Assert.assertTrue(((List)JsonPath.read(document, "$.children[1].parents")).isEmpty());
-        Assert.assertTrue(((List)JsonPath.read(document, "$.children[0].children")).isEmpty());
-        Assert.assertTrue(((List)JsonPath.read(document, "$.children[1].children")).isEmpty());
+        Assert.assertTrue(((List) JsonPath.read(document, "$.parents[0].parents")).isEmpty());
+        Assert.assertTrue(((List) JsonPath.read(document, "$.parents[1].parents")).isEmpty());
+        Assert.assertTrue(((List) JsonPath.read(document, "$.parents[0].children")).isEmpty());
+        Assert.assertTrue(((List) JsonPath.read(document, "$.parents[1].children")).isEmpty());
+        Assert.assertTrue(((List) JsonPath.read(document, "$.children[0].parents")).isEmpty());
+        Assert.assertTrue(((List) JsonPath.read(document, "$.children[1].parents")).isEmpty());
+        Assert.assertTrue(((List) JsonPath.read(document, "$.children[0].children")).isEmpty());
+        Assert.assertTrue(((List) JsonPath.read(document, "$.children[1].children")).isEmpty());
     }
 }

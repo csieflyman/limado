@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.mvc.rest;
 
 import com.google.common.collect.Sets;
@@ -59,6 +55,7 @@ public class PartyRestControllerTest {
     private static final String API_PATH = "/api/v1";
     private static Map<String, String> typePathMap = new HashMap<>();
     private static Map<String, Class> typeClassMap = new HashMap<>();
+
     static {
         typePathMap.put(User.TYPE, "users");
         typePathMap.put(Organization.TYPE, "organizations");
@@ -105,7 +102,7 @@ public class PartyRestControllerTest {
     }
 
     @Test
-    public void testBadRequestException() throws Exception{
+    public void testBadRequestException() throws Exception {
         User user1 = new User();
         user1.setIdentity("123");
         user1.setName("");
@@ -123,7 +120,7 @@ public class PartyRestControllerTest {
     }
 
     @Test
-    public void testResourceNotFoundException() throws Exception{
+    public void testResourceNotFoundException() throws Exception {
         String randomId = UUID.randomUUID().toString();
         mockMvc.perform(get(API_PATH + "/parties/" + randomId).accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andExpect(status().isNotFound())
@@ -210,7 +207,7 @@ public class PartyRestControllerTest {
     }
 
     @Test
-    public void testFind() throws Exception{
+    public void testFind() throws Exception {
         Party user1 = userMap.get("user1");
         Party user2 = userMap.get("user2");
         Party org1 = orgMap.get("org1");
@@ -276,7 +273,7 @@ public class PartyRestControllerTest {
     }
 
     @Test
-    public void testUpdate() throws Exception{
+    public void testUpdate() throws Exception {
         Party user1 = userMap.get("user1");
         Party user2 = userMap.get("user2");
         Party org1 = orgMap.get("org1");
@@ -334,7 +331,7 @@ public class PartyRestControllerTest {
     }
 
     @Test
-    public void testEnableAndDisableAndDelete() throws Exception{
+    public void testEnableAndDisableAndDelete() throws Exception {
         Party user1 = userMap.get("user1");
         Party user2 = userMap.get("user2");
         Party org1 = orgMap.get("org1");
@@ -456,7 +453,7 @@ public class PartyRestControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andReturn();
         String responseJsonArray = result.getResponse().getContentAsString();
-        return  JsonConverter.getInstance().convertInToSet(responseJsonArray, Party.class);
+        return JsonConverter.getInstance().convertInToSet(responseJsonArray, Party.class);
     }
 
     private Set<Party> getParents(Party party) throws Exception {
@@ -474,11 +471,11 @@ public class PartyRestControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andReturn();
-        if(params.containsKey(QueryParams.Q_ONLY_SIZE) && params.getFirst(QueryParams.Q_ONLY_SIZE).equals("true")) {
+        if (params.containsKey(QueryParams.Q_ONLY_SIZE) && params.getFirst(QueryParams.Q_ONLY_SIZE).equals("true")) {
             return Integer.parseInt(result.getResponse().getContentAsString());
         }
         String responseJsonArray = result.getResponse().getContentAsString();
-        return  JsonConverter.getInstance().convertInToSet(responseJsonArray, Party.class);
+        return JsonConverter.getInstance().convertInToSet(responseJsonArray, Party.class);
     }
 
     private Object getAscendants(Party party, MultiValueMap params) throws Exception {
@@ -487,7 +484,7 @@ public class PartyRestControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andReturn();
-        if(params.containsKey(QueryParams.Q_ONLY_SIZE) && params.getFirst(QueryParams.Q_ONLY_SIZE).equals("true")) {
+        if (params.containsKey(QueryParams.Q_ONLY_SIZE) && params.getFirst(QueryParams.Q_ONLY_SIZE).equals("true")) {
             return Integer.parseInt(result.getResponse().getContentAsString());
         }
         String responseJsonArray = result.getResponse().getContentAsString();
@@ -500,10 +497,10 @@ public class PartyRestControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
                 .andReturn();
-        if(params.containsKey(QueryParams.Q_ONLY_SIZE) && params.getFirst(QueryParams.Q_ONLY_SIZE).equals("true")) {
+        if (params.containsKey(QueryParams.Q_ONLY_SIZE) && params.getFirst(QueryParams.Q_ONLY_SIZE).equals("true")) {
             return Integer.parseInt(result.getResponse().getContentAsString());
         }
         String responseJsonArray = result.getResponse().getContentAsString();
-        return  JsonConverter.getInstance().convertInToSet(responseJsonArray, Party.class);
+        return JsonConverter.getInstance().convertInToSet(responseJsonArray, Party.class);
     }
 }

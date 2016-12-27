@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.util.converter.json;
 
 import com.fasterxml.jackson.core.JsonGenerator;

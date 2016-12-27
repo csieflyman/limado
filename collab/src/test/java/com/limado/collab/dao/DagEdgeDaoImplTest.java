@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.dao;
 
 import com.google.common.collect.Sets;
@@ -48,7 +44,7 @@ public class DagEdgeDaoImplTest extends AbstractTransactionalJUnit4SpringContext
     private UUID user5Id;
     private UUID user6Id;
     private UUID user7Id;
-    
+
     @Before
     public void initTestData() {
         Party group1 = new Group("group1");
@@ -81,7 +77,7 @@ public class DagEdgeDaoImplTest extends AbstractTransactionalJUnit4SpringContext
         user7 = partyDao.create(user7);
         user7Id = user7.getId();
     }
-    
+
     @Test
     public void testAddRemoveEdges() {
         dagEdgeDao.addEdges(group1Id, group2Id);

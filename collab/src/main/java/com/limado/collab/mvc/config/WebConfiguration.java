@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.mvc.config;
 
 import com.limado.collab.mvc.interceptor.LoggingInterceptor;

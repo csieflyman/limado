@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.util.converter.json;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -23,24 +19,23 @@ import java.util.*;
 
 /**
  * @author flyman
- *
  */
 public class JsonConverter {
 
     private static final Logger log = LogManager.getLogger(JsonConverter.class);
-    
+
     private static final ObjectMapper mapper = new ObjectMapper();
-    
+
     private static final JsonConverter instance = new JsonConverter();
-    
+
     private JsonConverter() {
         init();
     }
-    
+
     public static JsonConverter getInstance() {
         return instance;
     }
-    
+
     public void init() {
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         mapper.setSerializationInclusion(Include.ALWAYS);
@@ -49,8 +44,8 @@ public class JsonConverter {
         //mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
         registerModules();
     }
-    
-    private void registerModules(){
+
+    private void registerModules() {
         SimpleModule module = new SimpleModule("default");
         module.addAbstractTypeMapping(List.class, ArrayList.class);
         module.addAbstractTypeMapping(Map.class, HashMap.class);
@@ -61,11 +56,11 @@ public class JsonConverter {
         mapper.registerModule(new JodaModule());
         mapper.registerModule(new Hibernate5Module());
     }
-    
+
     public ObjectMapper getObjectMapper() {
         return mapper;
     }
-    
+
     public <T> List<T> convertInToList(String jsonString, Class<T> beanClass) {
         List<T> results;
         try {
@@ -76,7 +71,7 @@ public class JsonConverter {
         }
         return results;
     }
-    
+
     public <T> Set<T> convertInToSet(String jsonString, Class<T> beanClass) {
         Set<T> results;
         try {
@@ -87,7 +82,7 @@ public class JsonConverter {
         }
         return results;
     }
-    
+
     public <key, value> Map<key, value> convertInToMap(String jsonString, Class<key> mapKeyClass, Class<value> mapValueClass) {
         Map<key, value> results;
         try {
@@ -98,7 +93,7 @@ public class JsonConverter {
         }
         return results;
     }
-    
+
     public <T> T convertIn(String jsonString, Class<T> beanClass) {
         T bean;
         try {
@@ -108,7 +103,7 @@ public class JsonConverter {
         }
         return bean;
     }
-    
+
     public String convertOut(Object bean) {
         String result;
         try {

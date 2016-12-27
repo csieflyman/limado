@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.model;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -14,35 +10,35 @@ import java.util.UUID;
  * @author csieflyman
  */
 @Entity
-@Table(name="dag_edge")
-public class PartyDagEdge implements DagEdge<UUID>{
+@Table(name = "dag_edge")
+public class PartyDagEdge implements DagEdge<UUID> {
 
     public static final String DAG_ID = "member";
 
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     //MySQL bulk insertion changed behavior in hibernate 5 (https://hibernate.atlassian.net/browse/HHH-10167)
     private Long id;
 
     /**
-     The ID of the incoming edge to the start vertex
-     that is the creation reason for this implied edge;
-     direct edges contain the same value as the Id column
+     * The ID of the incoming edge to the start vertex
+     * that is the creation reason for this implied edge;
+     * direct edges contain the same value as the Id column
      */
     @Column(name = "entry_edge_id")
     private Long entryEdgeId;
 
     /**
-     The ID of the direct edge that caused the creation of this implied edge;
-     direct edges contain the same value as the Id column
+     * The ID of the direct edge that caused the creation of this implied edge;
+     * direct edges contain the same value as the Id column
      */
     @Column(name = "direct_edge_id")
     private Long directEdgeId;
 
     /**
-     The ID of the outgoing edge from the end vertex
-     that is the creation reason for this implied edge;
-     direct edges contain the same value as the Id column
+     * The ID of the outgoing edge from the end vertex
+     * that is the creation reason for this implied edge;
+     * direct edges contain the same value as the Id column
      */
     @Column(name = "exit_edge_id")
     private Long exitEdgeId;
@@ -56,16 +52,16 @@ public class PartyDagEdge implements DagEdge<UUID>{
     private UUID endVertexId;
 
     /**
-     Indicates how many vertex hops are necessary for the path.
-     It is zero for direct edges.
+     * Indicates how many vertex hops are necessary for the path.
+     * It is zero for direct edges.
      */
     @Basic(optional = false)
     @Column(name = "hops")
     private Integer hops = 0;
 
     /**
-     A column to indicate the context in which the graph is created; useful if we have more than one DAG to be represented within the same application
-     CAUTION: you need to make sure that the IDs of vertices from different sources never clash; the best is probably use of UUIDs
+     * A column to indicate the context in which the graph is created; useful if we have more than one DAG to be represented within the same application
+     * CAUTION: you need to make sure that the IDs of vertices from different sources never clash; the best is probably use of UUIDs
      */
     @Column(name = "dag_id")
     private String dagId = DAG_ID;

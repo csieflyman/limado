@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.model;
 
 import com.google.common.collect.Sets;
@@ -81,7 +77,7 @@ public class PartyTest {
             String key = "user" + i;
             User user = new User(key);
             user.setName(key.toUpperCase());
-            if(i == 5)
+            if (i == 5)
                 user.setEnabled(false);
             userMap.put(key, user);
         }
@@ -94,7 +90,7 @@ public class PartyTest {
             String key = "group" + i;
             Group group = new Group(key);
             group.setName(key.toUpperCase());
-            if(i == 5)
+            if (i == 5)
                 group.setEnabled(false);
             groupMap.put(key, group);
         }
@@ -104,11 +100,11 @@ public class PartyTest {
 
     private static Map<String, Party> generateOrgData() {
         Map<String, Party> orgMap = new HashMap<>();
-        for(int i = 1; i <= 5; i++) {
+        for (int i = 1; i <= 5; i++) {
             String key = "org" + i;
             Organization org = new Organization(key);
             org.setName(key.toUpperCase());
-            if(i == 5)
+            if (i == 5)
                 org.setEnabled(false);
             orgMap.put(key, org);
         }

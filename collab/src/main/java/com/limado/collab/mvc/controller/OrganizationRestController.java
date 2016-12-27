@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.mvc.controller;
 
 import com.limado.collab.model.Organization;
@@ -42,7 +38,7 @@ public class OrganizationRestController {
     public ResponseEntity create(@RequestBody OrganizationForm form, BindingResult result) {
         log.debug("create orgForm: " + form);
         new PartyFormValidator().validate(form, result);
-        if(result.hasErrors()) {
+        if (result.hasErrors()) {
             log.debug(ValidationUtils.buildErrorMessage(result));
             throw new BadRequestException("invalid org data.", null, ValidationUtils.buildErrorMessage(result));
         }
@@ -56,11 +52,11 @@ public class OrganizationRestController {
     @PutMapping(value = "{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public void update(@PathVariable String id, @RequestBody OrganizationForm form, BindingResult result) {
         log.debug("update orgForm: " + form);
-        if(!form.getId().toString().equals(id)) {
+        if (!form.getId().toString().equals(id)) {
             throw new BadRequestException("invalid uuid.", null, String.format("path uuid %s isn't the same as uuid %s in request body", id, form.getId()));
         }
         new PartyFormValidator().validate(form, result);
-        if(result.hasErrors()) {
+        if (result.hasErrors()) {
             log.debug(ValidationUtils.buildErrorMessage(result));
             throw new BadRequestException("invalid org data.", null, ValidationUtils.buildErrorMessage(result));
         }
@@ -73,7 +69,7 @@ public class OrganizationRestController {
         UUID parentUUID = UUID.fromString(parentId);
         UUID childUUID = UUID.fromString(childId);
         Party organization = organizationService.getById(parentUUID, Party.RELATION_PARENT);
-        if(organization != null && !organization.getType().equals(Organization.TYPE)) {
+        if (organization != null && !organization.getType().equals(Organization.TYPE)) {
             throw new BadRequestException(String.format("%s is not a organization", parentUUID));
         }
         Party child = organizationService.getById(childUUID);
@@ -85,7 +81,7 @@ public class OrganizationRestController {
         UUID parentUUID = UUID.fromString(parentId);
         UUID childUUID = UUID.fromString(childId);
         Party organization = organizationService.getById(parentUUID, Party.RELATION_PARENT);
-        if(organization != null && !organization.getType().equals(Organization.TYPE)) {
+        if (organization != null && !organization.getType().equals(Organization.TYPE)) {
             throw new BadRequestException(String.format("%s is not a organization", parentUUID));
         }
         Party child = organizationService.getById(childUUID);
@@ -97,7 +93,7 @@ public class OrganizationRestController {
         UUID parentUUID = UUID.fromString(parentId);
         UUID childUUID = UUID.fromString(childId);
         Party organization = organizationService.getById(parentUUID, Party.RELATION_PARENT);
-        if(organization != null && !organization.getType().equals(Organization.TYPE)) {
+        if (organization != null && !organization.getType().equals(Organization.TYPE)) {
             throw new BadRequestException(String.format("%s is not a organization", parentUUID));
         }
         Party child = organizationService.getById(childUUID);
@@ -112,7 +108,7 @@ public class OrganizationRestController {
         UUID parentUUID = UUID.fromString(parentId);
         Set<UUID> childrenUUIDs = childrenIds.stream().map(UUID::fromString).collect(Collectors.toSet());
         Party organization = organizationService.getById(parentUUID, Party.RELATION_PARENT);
-        if(organization != null && !organization.getType().equals(Organization.TYPE)) {
+        if (organization != null && !organization.getType().equals(Organization.TYPE)) {
             throw new BadRequestException(String.format("%s is not a organization", organization));
         }
         QueryParams params = new QueryParams();
@@ -129,7 +125,7 @@ public class OrganizationRestController {
         UUID parentUUID = UUID.fromString(parentId);
         Set<UUID> childrenUUIDs = childrenIds.stream().map(UUID::fromString).collect(Collectors.toSet());
         Party organization = organizationService.getById(parentUUID, Party.RELATION_PARENT);
-        if(organization != null && !organization.getType().equals(Organization.TYPE)) {
+        if (organization != null && !organization.getType().equals(Organization.TYPE)) {
             throw new BadRequestException(String.format("%s is not a organization", organization));
         }
         QueryParams params = new QueryParams();
@@ -146,7 +142,7 @@ public class OrganizationRestController {
         UUID childUUID = UUID.fromString(childId);
         Set<UUID> parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toSet());
         Party organization = organizationService.getById(childUUID);
-        if(organization != null && !organization.getType().equals(Organization.TYPE)) {
+        if (organization != null && !organization.getType().equals(Organization.TYPE)) {
             throw new BadRequestException(String.format("%s is not a organization", organization));
         }
         QueryParams params = new QueryParams();
@@ -163,7 +159,7 @@ public class OrganizationRestController {
         UUID childUUID = UUID.fromString(childId);
         Set<UUID> parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toSet());
         Party organization = organizationService.getById(childUUID);
-        if(organization != null && !organization.getType().equals(Organization.TYPE)) {
+        if (organization != null && !organization.getType().equals(Organization.TYPE)) {
             throw new BadRequestException(String.format("%s is not a organization", organization));
         }
         QueryParams params = new QueryParams();
@@ -177,15 +173,14 @@ public class OrganizationRestController {
     public Object getDescendants(@PathVariable String id, @RequestParam() Map<String, String> requestParam) {
         UUID uuid = UUID.fromString(id);
         Set<Party> descendants = organizationService.getDescendants(uuid);
-        if(requestParam != null && !requestParam.isEmpty()) {
+        if (requestParam != null && !requestParam.isEmpty()) {
             QueryParams params = new QueryParams();
             params.putAll(requestParam);
             List<Party> parties = organizationService.find(params);
             parties.retainAll(descendants);
             if (params.isOnlySize()) {
                 return parties.size();
-            }
-            else {
+            } else {
                 return parties;
             }
         }

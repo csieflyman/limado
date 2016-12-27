@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.service;
 
 import com.google.common.collect.Sets;
@@ -120,13 +116,13 @@ public class PartyServiceImplTest extends AbstractTransactionalJUnit4SpringConte
         Assert.assertEquals(Sets.newHashSet(user1, user2), partyService.getChildren(org2.getId()));
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void createDuplicatedTypeAndIdentity() {
         partyService.create(userMap.get("user1"));
         partyService.create(userMap.get("user1"));
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void updatDuplicatedTypeAndIdentity() {
         partyService.create(userMap.get("user1"));
         Party user2 = partyService.create(userMap.get("user2"));

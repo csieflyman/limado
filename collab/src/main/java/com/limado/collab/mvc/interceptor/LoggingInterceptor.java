@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.mvc.interceptor;
 
 import org.apache.logging.log4j.LogManager;
@@ -30,7 +26,7 @@ public class LoggingInterceptor extends HandlerInterceptorAdapter {
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        long startTime = (Long)request.getAttribute("startTime");
+        long startTime = (Long) request.getAttribute("startTime");
         long endTime = System.currentTimeMillis();
         long executeTime = endTime - startTime;
         log.info("========== " + request.getMethod() + " ( " + request.getRequestURI() + " )" + " " + executeTime + "ms" + " ==========");

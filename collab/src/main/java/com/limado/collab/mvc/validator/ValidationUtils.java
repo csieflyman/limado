@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.mvc.validator;
 
 import org.springframework.validation.BindingResult;
@@ -18,12 +14,12 @@ public class ValidationUtils {
 
     public static String buildErrorMessage(BindingResult result) {
         StringBuilder sb = new StringBuilder();
-        if(result.hasErrors()) {
+        if (result.hasErrors()) {
             for (FieldError error : result.getFieldErrors()) {
                 sb.append(error.getField() + " : " + error.getDefaultMessage()).append("; ");
             }
-            if(sb.length() > 0) {
-                sb = sb.delete(sb.length() -2, sb.length());
+            if (sb.length() > 0) {
+                sb = sb.delete(sb.length() - 2, sb.length());
             }
         }
         return sb.toString();

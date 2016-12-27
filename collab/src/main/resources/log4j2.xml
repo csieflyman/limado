@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ Copyright © 2016. Limado Inc. All rights reserved
-  -->
 
 <Configuration status="trace" strict="true" monitorInterval="600">
     <Filter type="ThresholdFilter" level="debug"/>

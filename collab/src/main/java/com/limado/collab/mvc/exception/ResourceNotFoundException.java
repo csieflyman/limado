@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.mvc.exception;
 
 /**
@@ -13,13 +9,11 @@ public class ResourceNotFoundException extends ServiceException {
 
     private Object resourceIdentifier;
 
-    public ResourceNotFoundException(String message, Object resourceIdentifier)
-    {
+    public ResourceNotFoundException(String message, Object resourceIdentifier) {
         this(message, null, resourceIdentifier);
     }
 
-    public ResourceNotFoundException(String message, Throwable cause, Object resourceIdentifier)
-    {
+    public ResourceNotFoundException(String message, Throwable cause, Object resourceIdentifier) {
         super(ERROR_CODE, message, cause);
         this.resourceIdentifier = resourceIdentifier;
     }

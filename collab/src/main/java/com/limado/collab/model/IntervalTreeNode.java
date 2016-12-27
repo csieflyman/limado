@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.model;
 
 import java.io.Serializable;
@@ -9,7 +5,7 @@ import java.io.Serializable;
 /**
  * @author csieflyman
  */
-public interface IntervalTreeNode<NodeIdType extends Serializable> extends Identifiable<Long>{
+public interface IntervalTreeNode<NodeIdType extends Serializable> extends Identifiable<Long> {
 
     NodeIdType getNodeId();
 

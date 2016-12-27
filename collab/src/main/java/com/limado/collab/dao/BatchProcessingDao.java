@@ -1,10 +1,4 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.dao;
-
-
 
 import com.limado.collab.model.Identifiable;
 

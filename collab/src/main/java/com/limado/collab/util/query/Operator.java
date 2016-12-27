@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.util.query;
 
 import org.apache.commons.collections.BidiMap;
@@ -42,7 +38,7 @@ public enum Operator {
 
     public static Operator exprValueOf(String expr) {
         Operator operator = (Operator) OPERATOR_EXPR_MAP.getKey(expr);
-        if(operator == null) {
+        if (operator == null) {
             throw new IllegalArgumentException("invalid operator expression " + expr);
         }
         return operator;

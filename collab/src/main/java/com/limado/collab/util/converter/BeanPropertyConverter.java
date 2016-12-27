@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.util.converter;
 
 import org.apache.commons.beanutils.BeanUtilsBean;
@@ -27,11 +23,12 @@ public class BeanPropertyConverter {
         T result = null;
         try {
             result = (T) converter.convert(value, targetType);
-        }catch (org.apache.commons.beanutils.ConversionException e) {
+        } catch (org.apache.commons.beanutils.ConversionException e) {
             throw new ConversionException(String.format("convert failure from %s (%s) to %s", value.toString(), value.getClass().getName(), targetType.getName()), e);
         }
         return result;
     }
+
     // override default converter will throw an exception when passed null or an invalid value as its input
     static {
 //        converter.register(new org.apache.commons.beanutils.converters.BooleanConverter(), Boolean.class);
@@ -63,7 +60,7 @@ public class BeanPropertyConverter {
 
         @Override
         protected UUID convertToType(Class arg0, Object value) throws Throwable {
-            return java.util.UUID.fromString((String)value);
+            return java.util.UUID.fromString((String) value);
         }
 
         @Override
@@ -78,11 +75,12 @@ public class BeanPropertyConverter {
         private DateTimeConverter() {
             super(null);
         }
+
         private DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
 
         @Override
         protected String convertToString(Object value) throws Throwable {
-            return dateFormat.format((Date)value);
+            return dateFormat.format((Date) value);
         }
 
         @Override

@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.mvc.validator;
 
 import com.limado.collab.model.Party;
@@ -19,7 +15,7 @@ import java.util.regex.Pattern;
  * @author csieflyman
  */
 @Controller
-public class PartyFormValidator implements Validator{
+public class PartyFormValidator implements Validator {
     private static final Logger log = LogManager.getLogger(PartyFormValidator.class);
 
     private static final Pattern IDENTITY_PATTERN = Pattern.compile("^[a-zA-z]([\\w\\_\\-])+$");
@@ -34,14 +30,14 @@ public class PartyFormValidator implements Validator{
     public void validate(Object target, Errors errors) {
         PartyForm<Party> form = (PartyForm) target;
         Party party = form.buildModel();
-        if(!checkIdentity(party.getIdentity())) {
-            errors.rejectValue("identity", "invalid.party.identity", new String[] {party.getIdentity()}, "invalid identity: " + party.getIdentity());
+        if (!checkIdentity(party.getIdentity())) {
+            errors.rejectValue("identity", "invalid.party.identity", new String[]{party.getIdentity()}, "invalid identity: " + party.getIdentity());
         }
-        if(!checkName(party.getName())) {
-            errors.rejectValue("name", "invalid.party.name", new String[] {party.getName()}, "invalid name: " + party.getName());
+        if (!checkName(party.getName())) {
+            errors.rejectValue("name", "invalid.party.name", new String[]{party.getName()}, "invalid name: " + party.getName());
         }
-        if(!checkEmail(party.getEmail())) {
-            errors.rejectValue("email", "invalid.party.email", new String[] {party.getEmail()}, "invalid email: " + party.getEmail());
+        if (!checkEmail(party.getEmail())) {
+            errors.rejectValue("email", "invalid.party.email", new String[]{party.getEmail()}, "invalid email: " + party.getEmail());
         }
     }
 

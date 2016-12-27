@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.dao;
 
 import com.limado.collab.model.Identifiable;
@@ -22,7 +18,7 @@ import java.util.*;
  * author flyman
  */
 abstract class JpaGenericDaoImpl<T extends Identifiable<ID>, ID extends Serializable>
-        implements GenericDao<T, ID>, BatchProcessingDao<T, ID>{
+        implements GenericDao<T, ID>, BatchProcessingDao<T, ID> {
 
     private static final Logger log = LogManager.getLogger(JpaGenericDaoImpl.class);
 
@@ -85,32 +81,30 @@ abstract class JpaGenericDaoImpl<T extends Identifiable<ID>, ID extends Serializ
         fromClause.append("from ").append(entityType.getName()).append(" ").append(entityAlias).append(" ");
 
         Set<String> fetchRelations = queryParams.getFetchRelations();
-        if(!fetchRelations.isEmpty()) {
+        if (!fetchRelations.isEmpty()) {
             boolean distinct = false;
-            for (String relation: fetchRelations) {
-                if(entityType.getAttribute(relation).isCollection()) {
+            for (String relation : fetchRelations) {
+                if (entityType.getAttribute(relation).isCollection()) {
                     distinct = true;
                     fromClause.append("left join fetch ");
-                }
-                else {
+                } else {
                     fromClause.append("inner join fetch ");
                 }
                 fromClause.append(entityAlias).append(".").append(relation).append(" ").append(relation).append(" ");
             }
-            if(distinct) {
+            if (distinct) {
                 selectClause.append("distinct ");
             }
         }
 
         Set<String> properties = queryParams.getPredicateProperties();
-        for(String property: properties) {
-            if(property.equalsIgnoreCase(entityAlias) || fetchRelations.contains(property))
+        for (String property : properties) {
+            if (property.equalsIgnoreCase(entityAlias) || fetchRelations.contains(property))
                 continue;
-            if(entityType.getAttribute(property).isCollection()) {
+            if (entityType.getAttribute(property).isCollection()) {
                 fromClause.append("left join ");
                 fromClause.append(entityAlias).append(".").append(property).append(" ").append(property).append(" ");
-            }
-            else if(entityType.getAttribute(property).isAssociation()){
+            } else if (entityType.getAttribute(property).isAssociation()) {
                 fromClause.append("inner join ");
                 fromClause.append(entityAlias).append(".").append(property).append(" ").append(property).append(" ");
             }
@@ -118,11 +112,11 @@ abstract class JpaGenericDaoImpl<T extends Identifiable<ID>, ID extends Serializ
 
         selectClause.append(entityAlias).append(" ");
 
-        if(!queryParams.getPredicates().isEmpty()) {
+        if (!queryParams.getPredicates().isEmpty()) {
             whereClause.append("where ").append(QueryUtils.buildHqlWhereClause(entityType,
                     queryParams.getPredicates(), queryParams.isPredicatesDisjunction())).append(" ");
         }
-        if(!queryParams.getOrderByList().isEmpty()) {
+        if (!queryParams.getOrderByList().isEmpty()) {
             orderByClause.append(QueryUtils.buildHqlOrderByClause(entityType, queryParams.getOrderByList()));
         }
 
@@ -131,7 +125,7 @@ abstract class JpaGenericDaoImpl<T extends Identifiable<ID>, ID extends Serializ
         Query query = entityManager.createQuery(sb.toString());
         QueryUtils.setQueryParameterValue(query, queryParams.getPredicates());
 
-        if(queryParams.getOffset() >= 0) {
+        if (queryParams.getOffset() >= 0) {
             query.setFirstResult(queryParams.getOffset());
             query.setMaxResults(queryParams.getLimit());
         }
@@ -156,20 +150,19 @@ abstract class JpaGenericDaoImpl<T extends Identifiable<ID>, ID extends Serializ
         fromClause.append("from ").append(entityType.getName()).append(" ").append(entityAlias).append(" ");
 
         Set<String> properties = queryParams.getPredicateProperties();
-        for(String property: properties) {
-            if(property.equalsIgnoreCase(entityAlias))
+        for (String property : properties) {
+            if (property.equalsIgnoreCase(entityAlias))
                 continue;
-            if(entityType.getAttribute(property).isCollection()) {
+            if (entityType.getAttribute(property).isCollection()) {
                 fromClause.append("left join ");
                 fromClause.append(entityAlias).append(".").append(property).append(" ").append(property).append(" ");
-            }
-            else if(entityType.getAttribute(property).isAssociation()){
+            } else if (entityType.getAttribute(property).isAssociation()) {
                 fromClause.append("inner join ");
                 fromClause.append(entityAlias).append(".").append(property).append(" ").append(property).append(" ");
             }
         }
 
-        if(!queryParams.getPredicates().isEmpty()) {
+        if (!queryParams.getPredicates().isEmpty()) {
             whereClause.append("where ").append(QueryUtils.buildHqlWhereClause(entityType,
                     queryParams.getPredicates(), queryParams.isPredicatesDisjunction())).append(" ");
         }
@@ -185,13 +178,13 @@ abstract class JpaGenericDaoImpl<T extends Identifiable<ID>, ID extends Serializ
 
     @Override
     public void batchCreate(Collection<T> entities) {
-        if(entities.size() == 0)
+        if (entities.size() == 0)
             return;
 
         int count = 0;
-        for(T entity: entities) {
+        for (T entity : entities) {
             create(entity);
-            if(++count % batchSize == 0) {
+            if (++count % batchSize == 0) {
                 entityManager.flush();
                 entityManager.clear();
             }
@@ -200,13 +193,13 @@ abstract class JpaGenericDaoImpl<T extends Identifiable<ID>, ID extends Serializ
 
     @Override
     public void batchUpdate(Collection<T> entities) {
-        if(entities.size() == 0)
+        if (entities.size() == 0)
             return;
 
         int count = 0;
-        for(T entity: entities) {
+        for (T entity : entities) {
             update(entity);
-            if(++count % batchSize == 0) {
+            if (++count % batchSize == 0) {
                 entityManager.flush();
                 entityManager.clear();
             }
@@ -215,15 +208,15 @@ abstract class JpaGenericDaoImpl<T extends Identifiable<ID>, ID extends Serializ
 
     @Override
     public void batchUpdate(Collection<ID> ids, Map<String, Object> updatedValueMap) {
-        if(ids.size() == 0)
+        if (ids.size() == 0)
             return;
 
         StringBuilder sb = new StringBuilder();
         int count = 0;
-        for(String key: updatedValueMap.keySet()) {
+        for (String key : updatedValueMap.keySet()) {
             sb.append(key).append(" = :").append(key);
             count++;
-            if(count != updatedValueMap.size())
+            if (count != updatedValueMap.size())
                 sb.append(", ");
         }
 
@@ -236,13 +229,13 @@ abstract class JpaGenericDaoImpl<T extends Identifiable<ID>, ID extends Serializ
 
     @Override
     public void batchDelete(Collection<T> entities) {
-        if(entities.size() == 0)
+        if (entities.size() == 0)
             return;
 
         int count = 0;
-        for(T entity: entities) {
+        for (T entity : entities) {
             delete(entity);
-            if(++count % batchSize == 0) {
+            if (++count % batchSize == 0) {
                 entityManager.flush();
                 entityManager.clear();
             }
@@ -251,7 +244,7 @@ abstract class JpaGenericDaoImpl<T extends Identifiable<ID>, ID extends Serializ
 
     @Override
     public void batchDeleteById(Collection<ID> ids) {
-        if(ids.size() == 0)
+        if (ids.size() == 0)
             return;
 
         String deleteHQL = "delete " + clazz.getSimpleName() + " where id in (:ids)";
@@ -263,14 +256,14 @@ abstract class JpaGenericDaoImpl<T extends Identifiable<ID>, ID extends Serializ
         int effectRows = 0;
         int index = 0;
         Set<ID> batchIdSet = new HashSet<>();
-        for(Iterator<ID> i = ids.iterator(); i.hasNext();) {
+        for (Iterator<ID> i = ids.iterator(); i.hasNext(); ) {
             batchIdSet.add(i.next());
             index++;
-            if(index == batchSize) {
+            if (index == batchSize) {
                 Query query = entityManager.createQuery(hql);
                 query.setParameter("ids", batchIdSet);
-                if(parameterMap != null) {
-                    for(Map.Entry<String, Object> entry: parameterMap.entrySet()) {
+                if (parameterMap != null) {
+                    for (Map.Entry<String, Object> entry : parameterMap.entrySet()) {
                         query.setParameter(entry.getKey(), entry.getValue());
                     }
                 }
@@ -279,11 +272,11 @@ abstract class JpaGenericDaoImpl<T extends Identifiable<ID>, ID extends Serializ
                 batchIdSet.clear();
             }
         }
-        if(index > 0) {
+        if (index > 0) {
             Query query = entityManager.createQuery(hql);
             query.setParameter("ids", batchIdSet);
-            if(parameterMap != null) {
-                for(Map.Entry<String, Object> entry: parameterMap.entrySet()) {
+            if (parameterMap != null) {
+                for (Map.Entry<String, Object> entry : parameterMap.entrySet()) {
                     query.setParameter(entry.getKey(), entry.getValue());
                 }
             }

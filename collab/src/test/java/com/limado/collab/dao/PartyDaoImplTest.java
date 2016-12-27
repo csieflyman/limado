@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.dao;
 
 import com.google.common.collect.Sets;
@@ -127,7 +123,7 @@ public class PartyDaoImplTest extends AbstractTransactionalJUnit4SpringContextTe
         qp2.put(QueryParams.Q_PREDICATES, predicate2);
         parties = partyDao.find(qp2);
         expectedParties = Sets.newHashSet(userMap.get("user1"));
-        Assert.assertEquals(expectedParties,new HashSet<>(parties));
+        Assert.assertEquals(expectedParties, new HashSet<>(parties));
         size = partyDao.findSize(qp2);
         Assert.assertEquals(expectedParties.size(), size);
 

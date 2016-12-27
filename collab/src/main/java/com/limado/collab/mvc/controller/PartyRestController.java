@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.mvc.controller;
 
 import com.limado.collab.model.Group;
@@ -84,15 +80,14 @@ public class PartyRestController {
     public Object getAscendants(@PathVariable String id, @RequestParam() Map<String, String> requestParam) {
         UUID uuid = UUID.fromString(id);
         Set<Party> ascendants = partyService.getAscendants(uuid);
-        if(requestParam != null && !requestParam.isEmpty()) {
+        if (requestParam != null && !requestParam.isEmpty()) {
             QueryParams params = new QueryParams();
             params.putAll(requestParam);
             List<Party> parties = partyService.find(params);
             parties.retainAll(ascendants);
             if (params.isOnlySize()) {
                 return parties.size();
-            }
-            else {
+            } else {
                 return parties;
             }
         }
@@ -104,15 +99,14 @@ public class PartyRestController {
     public Object getDescendants(@PathVariable String id, @RequestParam() Map<String, String> requestParam) {
         UUID uuid = UUID.fromString(id);
         Set<Party> descendants = partyService.getDescendants(uuid);
-        if(requestParam != null && !requestParam.isEmpty()) {
+        if (requestParam != null && !requestParam.isEmpty()) {
             QueryParams params = new QueryParams();
             params.putAll(requestParam);
             List<Party> parties = partyService.find(params);
             parties.retainAll(descendants);
             if (params.isOnlySize()) {
                 return parties.size();
-            }
-            else {
+            } else {
                 return parties;
             }
         }
@@ -156,20 +150,20 @@ public class PartyRestController {
         params.addPredicate(new Predicate("id", Operator.IN, uuids));
         List<Party> parties = partyService.find(params);
         Map<String, List<Party>> partyTypeMap = parties.stream().collect(Collectors.groupingBy(Party::getType));
-        if(partyTypeMap.get(Group.TYPE) != null) {
-            partyTypeMap.get(Group.TYPE).forEach(party -> groupService.delete((Group)party));
+        if (partyTypeMap.get(Group.TYPE) != null) {
+            partyTypeMap.get(Group.TYPE).forEach(party -> groupService.delete((Group) party));
         }
-        if(partyTypeMap.get(Organization.TYPE) != null) {
+        if (partyTypeMap.get(Organization.TYPE) != null) {
             partyTypeMap.get(Organization.TYPE).forEach(party -> organizationService.delete((Organization) party));
         }
-        if(partyTypeMap.get(User.TYPE) != null) {
-            partyTypeMap.get(User.TYPE).forEach(party -> userService.delete((User)party));
+        if (partyTypeMap.get(User.TYPE) != null) {
+            partyTypeMap.get(User.TYPE).forEach(party -> userService.delete((User) party));
         }
     }
 
     // do not serialize relations
     private void removePartyRelations(Collection<Party> parties) {
-        if(parties != null) {
+        if (parties != null) {
             parties.forEach(party -> party.setParents(null));
             parties.forEach(party -> party.setChildren(null));
         }

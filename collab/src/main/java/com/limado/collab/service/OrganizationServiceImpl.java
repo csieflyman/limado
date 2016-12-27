@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.service;
 
 import com.google.common.base.Preconditions;
@@ -41,17 +37,16 @@ public class OrganizationServiceImpl extends PartyServiceImpl<Organization> impl
         Preconditions.checkArgument(child != null, "child must not be null");
         Preconditions.checkArgument(organization != null, "organization must not be null");
 
-        if(!child.getType().equals(Group.TYPE)) {
+        if (!child.getType().equals(Group.TYPE)) {
             child = getById(child.getId(), Party.RELATION_PARENT);
             Optional<Party> parentOrg = child.getParents().stream().filter(parent -> parent.getType().equals(Organization.TYPE)).findFirst();
-            if(parentOrg.isPresent()) {
+            if (parentOrg.isPresent()) {
                 intervalTreeDao.removeChild(parentOrg.get().getId(), child.getId());
                 super.removeChild((Organization) parentOrg.get(), child);
             }
             super.addChild(organization, child);
             intervalTreeDao.addChild(organization.getId(), child.getId());
-        }
-        else {
+        } else {
             throw new IllegalArgumentException(String.format("organization %s can't add group child %s", organization, child));
         }
     }
@@ -83,11 +78,11 @@ public class OrganizationServiceImpl extends PartyServiceImpl<Organization> impl
         Preconditions.checkArgument(parent != null, "parent must not be null");
         Preconditions.checkArgument(children != null, "children must not be null");
 
-        if(children.isEmpty())
+        if (children.isEmpty())
             return;
 
         children = loadChildren(children);
-        for(Party child: children) {
+        for (Party child : children) {
             validateChildType(child);
             validateParentsRelationship(parent, child);
         }
@@ -101,7 +96,7 @@ public class OrganizationServiceImpl extends PartyServiceImpl<Organization> impl
         Preconditions.checkArgument(parent != null, "parent must not be null");
         Preconditions.checkArgument(children != null, "children must not be null");
 
-        if(children.isEmpty())
+        if (children.isEmpty())
             return;
 
         children.forEach(child -> intervalTreeDao.removeChild(parent.getId(), child.getId()));
@@ -113,21 +108,19 @@ public class OrganizationServiceImpl extends PartyServiceImpl<Organization> impl
         Preconditions.checkArgument(child != null, "child must not be null");
         Preconditions.checkArgument(parents != null, "parents must not be null");
 
-        if(parents.isEmpty())
+        if (parents.isEmpty())
             return;
 
         Map<String, List<Party>> parentsTypeMap = parents.stream().collect(Collectors.groupingBy(Party::getType));
-        if(parentsTypeMap.get(User.TYPE) != null) {
+        if (parentsTypeMap.get(User.TYPE) != null) {
             throw new IllegalArgumentException(String.format("organization %s can't add user parent %s", child, parentsTypeMap.get(User.TYPE)));
-        }
-
-        else if(parentsTypeMap.get(Organization.TYPE) != null && parentsTypeMap.get(Organization.TYPE).size() > 1) {
+        } else if (parentsTypeMap.get(Organization.TYPE) != null && parentsTypeMap.get(Organization.TYPE).size() > 1) {
             throw new IllegalArgumentException(String.format("organization %s can't add above two organization parents %s", child, parentsTypeMap.get(Organization.TYPE)));
         }
 
         super.addParents(child, parents);
-        for(Party parent: parents) {
-            if(parent.getType().equals(Organization.TYPE)) {
+        for (Party parent : parents) {
+            if (parent.getType().equals(Organization.TYPE)) {
                 intervalTreeDao.addChild(parent.getId(), child.getId());
             }
         }
@@ -138,11 +131,11 @@ public class OrganizationServiceImpl extends PartyServiceImpl<Organization> impl
         Preconditions.checkArgument(child != null, "child must not be null");
         Preconditions.checkArgument(parents != null, "parents must not be null");
 
-        if(parents.isEmpty())
+        if (parents.isEmpty())
             return;
 
-        for(Party parent: parents) {
-            if(parent.getType().equals(Organization.TYPE)) {
+        for (Party parent : parents) {
+            if (parent.getType().equals(Organization.TYPE)) {
                 intervalTreeDao.removeChild(parent.getId(), child.getId());
             }
         }
@@ -162,7 +155,7 @@ public class OrganizationServiceImpl extends PartyServiceImpl<Organization> impl
         Preconditions.checkArgument(id != null, "id must not be null");
 
         List<UUID> descendantIds = intervalTreeDao.getSubTree(id);
-        if(descendantIds.isEmpty())
+        if (descendantIds.isEmpty())
             return new HashSet<>();
 
         QueryParams params = new QueryParams();
@@ -179,7 +172,7 @@ public class OrganizationServiceImpl extends PartyServiceImpl<Organization> impl
         params.addPredicate(new Predicate("id", Operator.IN, childrenIds));
         params.setFetchRelations(Sets.newHashSet(Party.RELATION_PARENT));
         children = new HashSet<>(find(params));
-        if(children.size() != childrenIds.size()) {
+        if (children.size() != childrenIds.size()) {
             Set<UUID> foundChildrenIds = children.stream().map(Party::getId).collect(Collectors.toSet());
             throw new IllegalArgumentException(String.format("children id %s are not exist", CollectionUtils.subtract(childrenIds, foundChildrenIds)));
         }
@@ -187,19 +180,18 @@ public class OrganizationServiceImpl extends PartyServiceImpl<Organization> impl
     }
 
     private void validateChildType(Party child) {
-        if(child.getType().equals(Group.TYPE)) {
+        if (child.getType().equals(Group.TYPE)) {
             throw new IllegalArgumentException(String.format("organization can't add group child %s", child.getId()));
         }
     }
 
     private void validateParentsRelationship(Organization newParent, Party child) {
         Optional<Party> parentOrg = child.getParents().stream().filter(parent -> parent.getType().equals(Organization.TYPE)).findFirst();
-        if(parentOrg.isPresent()) {
+        if (parentOrg.isPresent()) {
             Party currentParent = parentOrg.get();
-            if(currentParent.equals(newParent)) {
+            if (currentParent.equals(newParent)) {
                 throw new IllegalArgumentException(String.format("parent %s already has child %s", newParent, child));
-            }
-            else {
+            } else {
                 throw new IllegalArgumentException(String.format("child %s can't have above two parents organization %s and %s", child, newParent, currentParent));
             }
         }

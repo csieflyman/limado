@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.util.query;
 
 import com.google.common.base.Preconditions;
@@ -42,7 +38,7 @@ public class QueryParams {
     public static final String Q_FETCH_PROPERTIES = "q_fetchProperties";
 
     public void putAll(Map<String, String> paramMap) {
-        if(paramMap == null)
+        if (paramMap == null)
             return;
         paramMap.forEach((key, value) -> put(key, value));
     }
@@ -83,20 +79,18 @@ public class QueryParams {
     }
 
     private List<OrderBy> parseSortString(String s) {
-        if(StringUtils.isEmpty(s))
+        if (StringUtils.isEmpty(s))
             return Collections.emptyList();
 
         List<OrderBy> orderByList = new ArrayList<>();
         String[] orderByProps = s.split(",");
-        for(String orderByProp: orderByProps) {
+        for (String orderByProp : orderByProps) {
             orderByProp = orderByProp.trim();
-            if(orderByProp.startsWith("+")) {
+            if (orderByProp.startsWith("+")) {
                 orderByList.add(new OrderBy(orderByProp.substring(1), true));
-            }
-            else if(orderByProp.startsWith("-")){
+            } else if (orderByProp.startsWith("-")) {
                 orderByList.add(new OrderBy(orderByProp.substring(1), false));
-            }
-            else {
+            } else {
                 orderByList.add(new OrderBy(orderByProp, true));
             }
         }
@@ -104,18 +98,18 @@ public class QueryParams {
     }
 
     private List<Predicate> parsePredicateString(String s) {
-        if(StringUtils.isEmpty(s))
+        if (StringUtils.isEmpty(s))
             return Collections.emptyList();
 
         Preconditions.checkArgument(s.startsWith("[") && s.endsWith("]"), "invalid q_predicate format: " + s);
-        s = s.substring(1, s.length() -1).trim();
+        s = s.substring(1, s.length() - 1).trim();
         List<String> predicateStrings = Lists.newArrayList(Splitter.on(";").split(s));
         List<Predicate> predicates;
         try {
             predicates = predicateStrings.stream().map(ps -> ps.trim()).filter(ps -> StringUtils.isNotEmpty(ps)).map(ps -> Lists.newArrayList(Splitter.on(" ").split(ps)))
                     .map(psList -> new Predicate(psList.get(0), Operator.exprValueOf(psList.get(1)),
                             psList.size() == 2 ? null : String.join(" ", psList.subList(2, psList.size())))).collect(Collectors.toList());
-        }catch (Throwable e) {
+        } catch (Throwable e) {
             throw new IllegalArgumentException("invalid q_predicate format: " + s, e);
         }
         return predicates;
@@ -198,7 +192,7 @@ public class QueryParams {
 
     public void setPredicatesDisjunction(boolean predicatesDisjunction) {
         this.predicatesDisjunction = predicatesDisjunction;
-}
+    }
 
     @Override
     public String toString() {

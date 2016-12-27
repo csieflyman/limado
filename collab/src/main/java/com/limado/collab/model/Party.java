@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.model;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -21,15 +17,15 @@ import java.util.stream.Collectors;
  * author flyman
  */
 @Entity
-@Table(name="party")
-@Inheritance(strategy= InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name="type", discriminatorType=DiscriminatorType.STRING)
-@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include= JsonTypeInfo.As.PROPERTY, property="type", visible = true)
+@Table(name = "party")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type", visible = true)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = User.class, name = User.TYPE),
         @JsonSubTypes.Type(value = Organization.class, name = Organization.TYPE),
         @JsonSubTypes.Type(value = Group.class, name = Group.TYPE)})
-public abstract class Party implements Identifiable<UUID>{
+public abstract class Party implements Identifiable<UUID> {
 
     public static final String RELATION_CHILDREN = "children";
     public static final String RELATION_PARENT = "parents";
@@ -64,7 +60,7 @@ public abstract class Party implements Identifiable<UUID>{
     private Date modificationDate;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name="party_rel", joinColumns={@JoinColumn( name="parent")}, inverseJoinColumns={@JoinColumn(name="children")})
+    @JoinTable(name = "party_rel", joinColumns = {@JoinColumn(name = "parent")}, inverseJoinColumns = {@JoinColumn(name = "children")})
     private Set<Party> children = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "children")
@@ -151,27 +147,27 @@ public abstract class Party implements Identifiable<UUID>{
     }
 
     public void addChild(Party child) {
-        if(children == null)
+        if (children == null)
             children = new HashSet<>();
         children.add(child);
         child.addParent(this);
     }
 
     public void removeChild(Party child) {
-        if(children == null)
+        if (children == null)
             children = new HashSet<>();
         children.remove(child);
         child.removeParent(this);
     }
 
     private void addParent(Party parent) {
-        if(parents == null)
+        if (parents == null)
             parents = new HashSet<>();
         parents.add(parent);
     }
 
     private void removeParent(Party parent) {
-        if(parents == null)
+        if (parents == null)
             parents = new HashSet<>();
         parents.remove(parent);
     }
@@ -194,7 +190,7 @@ public abstract class Party implements Identifiable<UUID>{
     public String toString() {
         return new ToStringBuilder(this).append("id", id).append("type", getType()).append("identity", identity).append("enabled", enabled)
                 .append("children", children == null ? "[]" : children.stream().map(child -> child.getType() + "/" + child.getIdentity() + "/" + child.getId()).collect(Collectors.toSet()))
-                .append("parents",  parents == null ? "[]" : parents.stream().map(parent -> parent.getType() + "/" + parent.getIdentity()+ "/" + parent.getId()).collect(Collectors.toSet()))
+                .append("parents", parents == null ? "[]" : parents.stream().map(parent -> parent.getType() + "/" + parent.getIdentity() + "/" + parent.getId()).collect(Collectors.toSet()))
                 .toString();
     }
 }

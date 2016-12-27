@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.mvc.controller;
 
 import com.limado.collab.model.Group;
@@ -45,7 +41,7 @@ public class GroupRestController {
     public ResponseEntity create(@RequestBody GroupForm form, BindingResult result) {
         log.debug("create groupForm: " + form);
         new PartyFormValidator().validate(form, result);
-        if(result.hasErrors()) {
+        if (result.hasErrors()) {
             log.debug(ValidationUtils.buildErrorMessage(result));
             throw new BadRequestException("invalid group data.", null, ValidationUtils.buildErrorMessage(result));
         }
@@ -59,11 +55,11 @@ public class GroupRestController {
     @PutMapping(value = "{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public void update(@PathVariable String id, @RequestBody GroupForm form, BindingResult result) {
         log.debug("update groupForm: " + form);
-        if(!form.getId().toString().equals(id)) {
+        if (!form.getId().toString().equals(id)) {
             throw new BadRequestException("invalid uuid.", null, String.format("path uuid %s isn't the same as uuid %s in request body", id, form.getId()));
         }
         new PartyFormValidator().validate(form, result);
-        if(result.hasErrors()) {
+        if (result.hasErrors()) {
             log.debug(ValidationUtils.buildErrorMessage(result));
             throw new BadRequestException("invalid group data.", null, ValidationUtils.buildErrorMessage(result));
         }
@@ -76,7 +72,7 @@ public class GroupRestController {
         UUID parentUUID = UUID.fromString(parentId);
         UUID childUUID = UUID.fromString(childId);
         Party group = groupService.getById(parentUUID, Party.RELATION_PARENT);
-        if(group != null && !group.getType().equals(Group.TYPE)) {
+        if (group != null && !group.getType().equals(Group.TYPE)) {
             throw new BadRequestException(String.format("%s is not a group", parentUUID));
         }
         Party child = groupService.getById(childUUID);
@@ -88,7 +84,7 @@ public class GroupRestController {
         UUID parentUUID = UUID.fromString(parentId);
         UUID childUUID = UUID.fromString(childId);
         Party group = groupService.getById(parentUUID, Party.RELATION_PARENT);
-        if(group != null && !group.getType().equals(Group.TYPE)) {
+        if (group != null && !group.getType().equals(Group.TYPE)) {
             throw new BadRequestException(String.format("%s is not a group", parentUUID));
         }
         Party child = groupService.getById(childUUID);
@@ -103,7 +99,7 @@ public class GroupRestController {
         UUID parentUUID = UUID.fromString(parentId);
         Set<UUID> childrenUUIDs = childrenIds.stream().map(UUID::fromString).collect(Collectors.toSet());
         Party group = groupService.getById(parentUUID, Party.RELATION_PARENT);
-        if(group != null && !group.getType().equals(Group.TYPE)) {
+        if (group != null && !group.getType().equals(Group.TYPE)) {
             throw new BadRequestException(String.format("%s is not a group", group));
         }
         QueryParams params = new QueryParams();
@@ -120,7 +116,7 @@ public class GroupRestController {
         UUID parentUUID = UUID.fromString(parentId);
         Set<UUID> childrenUUIDs = childrenIds.stream().map(UUID::fromString).collect(Collectors.toSet());
         Party group = groupService.getById(parentUUID, Party.RELATION_PARENT);
-        if(group != null && !group.getType().equals(Group.TYPE)) {
+        if (group != null && !group.getType().equals(Group.TYPE)) {
             throw new BadRequestException(String.format("%s is not a group", group));
         }
         QueryParams params = new QueryParams();
@@ -137,7 +133,7 @@ public class GroupRestController {
         UUID childUUID = UUID.fromString(childId);
         Set<UUID> parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toSet());
         Party group = groupService.getById(childUUID);
-        if(group != null && !group.getType().equals(Group.TYPE)) {
+        if (group != null && !group.getType().equals(Group.TYPE)) {
             throw new BadRequestException(String.format("%s is not a group", group));
         }
         QueryParams params = new QueryParams();
@@ -154,7 +150,7 @@ public class GroupRestController {
         UUID childUUID = UUID.fromString(childId);
         Set<UUID> parentsUUIDs = parentsIds.stream().map(UUID::fromString).collect(Collectors.toSet());
         Party group = groupService.getById(childUUID);
-        if(group != null && !group.getType().equals(Group.TYPE)) {
+        if (group != null && !group.getType().equals(Group.TYPE)) {
             throw new BadRequestException(String.format("%s is not a group", group));
         }
         QueryParams params = new QueryParams();

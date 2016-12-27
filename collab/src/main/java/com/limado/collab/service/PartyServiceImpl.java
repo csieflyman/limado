@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.service;
 
 import com.google.common.base.Preconditions;
@@ -42,7 +38,7 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
     public T create(T party) {
         Preconditions.checkArgument(party != null, "party must not be null");
 
-        if(checkExist(party.getType(), party.getIdentity())) {
+        if (checkExist(party.getType(), party.getIdentity())) {
             throw new IllegalArgumentException(String.format("identity %s must be unique of the type %s", party.getIdentity(), party.getType()));
         }
 
@@ -52,10 +48,10 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         party.setChildren(new HashSet<>());
         T newParty = (T) partyDao.create(party);
 
-        if(children != null && !children.isEmpty()) {
+        if (children != null && !children.isEmpty()) {
             addChildren(newParty, children);
         }
-        if(parents != null && !parents.isEmpty()) {
+        if (parents != null && !parents.isEmpty()) {
             addParents(newParty, parents);
         }
 
@@ -68,7 +64,7 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         Preconditions.checkArgument(party.getId() != null, "party id must not be null");
 
         Party oldParty = getById(party.getId(), Party.RELATION_PARENT, Party.RELATION_CHILDREN);
-        if(!party.getIdentity().equals(oldParty.getIdentity()) && checkExist(party.getType(), party.getIdentity())) {
+        if (!party.getIdentity().equals(oldParty.getIdentity()) && checkExist(party.getType(), party.getIdentity())) {
             throw new IllegalArgumentException(String.format("identity %s must be unique of the type %s", party.getIdentity(), party.getType()));
         }
 
@@ -82,18 +78,18 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         Collection<Party> removeParents = parents == null ? Collections.emptySet() : CollectionUtils.subtract(oldParty.getParents(), parents);
         Collection<Party> addChildren = children == null ? Collections.emptySet() : CollectionUtils.subtract(children, oldParty.getChildren());
         Collection<Party> removeChildren = children == null ? Collections.emptySet() : CollectionUtils.subtract(oldParty.getChildren(), children);
-        if(!removeChildren.isEmpty()) {
+        if (!removeChildren.isEmpty()) {
             party = get(party, Party.RELATION_CHILDREN);
             removeChildren(party, new HashSet<>(removeChildren));
         }
-        if(!removeParents.isEmpty()) {
+        if (!removeParents.isEmpty()) {
             removeParents(party, new HashSet<>(removeParents));
         }
-        if(!addChildren.isEmpty()) {
+        if (!addChildren.isEmpty()) {
             party = get(party, Party.RELATION_CHILDREN);
             addChildren(party, new HashSet<>(addChildren));
         }
-        if(!addParents.isEmpty()) {
+        if (!addParents.isEmpty()) {
             addParents(party, new HashSet<>(addParents));
         }
     }
@@ -107,10 +103,9 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
     public T get(T party, Collection<String> relations) {
         Preconditions.checkArgument(party != null, "party must not be null");
 
-        if(party.getId() != null) {
+        if (party.getId() != null) {
             return (T) getById(party.getId(), relations);
-        }
-        else {
+        } else {
             return (T) getByTypeAndIdentity(party.getType(), party.getIdentity(), relations);
         }
     }
@@ -124,10 +119,9 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
     public Party getById(UUID id, Collection<String> relations) {
         Preconditions.checkArgument(id != null, "id must not be null");
         Party party;
-        if(relations == null || relations.isEmpty()) {
+        if (relations == null || relations.isEmpty()) {
             party = partyDao.getById(id);
-        }
-        else {
+        } else {
             QueryParams params = new QueryParams();
             params.addPredicate(new Predicate("id", Operator.EQ, id));
             params.setFetchRelations(Sets.newHashSet(relations));
@@ -135,7 +129,7 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
             party = parties.isEmpty() ? null : parties.get(0);
         }
 
-        if(party == null) {
+        if (party == null) {
             throw new IllegalArgumentException(String.format("party id %s is not exist", id));
         }
 
@@ -160,10 +154,10 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         Preconditions.checkArgument(party != null, "party must not be null");
 
         party = (T) getById(party.getId(), Party.RELATION_PARENT, Party.RELATION_CHILDREN);
-        if(party.getChildren() != null && !party.getChildren().isEmpty()) {
+        if (party.getChildren() != null && !party.getChildren().isEmpty()) {
             partyDao.removeChildren(party, party.getChildren());
         }
-        if(party.getParents() != null && !party.getParents().isEmpty()) {
+        if (party.getParents() != null && !party.getParents().isEmpty()) {
             partyDao.removeParents(party, party.getParents());
         }
         dagEdgeDao.removeEdgesOfVertex(party.getId());
@@ -226,7 +220,7 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         Preconditions.checkArgument(id != null, "id must not be null");
 
         Set ascendantIds = dagEdgeDao.findIncomingVertices(id);
-        if(ascendantIds.isEmpty())
+        if (ascendantIds.isEmpty())
             return new HashSet<>();
         QueryParams params = new QueryParams();
         params.addPredicate(new Predicate("id", Operator.IN, ascendantIds));
@@ -238,7 +232,7 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         Preconditions.checkArgument(id != null, "id must not be null");
 
         Set descendantIds = dagEdgeDao.findOutgoingVertices(id);
-        if(descendantIds.isEmpty())
+        if (descendantIds.isEmpty())
             return new HashSet<>();
         QueryParams params = new QueryParams();
         params.addPredicate(new Predicate("id", Operator.IN, descendantIds));
@@ -268,7 +262,7 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         Preconditions.checkArgument(parent != null, "parent must not be null");
         Preconditions.checkArgument(children != null, "children must not be null");
 
-        if(children.isEmpty())
+        if (children.isEmpty())
             return;
         partyDao.addChildren(parent, children);
         children.forEach(child -> dagEdgeDao.addEdges(parent.getId(), child.getId()));
@@ -279,7 +273,7 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         Preconditions.checkArgument(parent != null, "parent must not be null");
         Preconditions.checkArgument(children != null, "children must not be null");
 
-        if(children.isEmpty())
+        if (children.isEmpty())
             return;
         partyDao.removeChildren(parent, children);
         children.forEach(child -> dagEdgeDao.removeEdges(parent.getId(), child.getId()));
@@ -290,7 +284,7 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         Preconditions.checkArgument(child != null, "child must not be null");
         Preconditions.checkArgument(parents != null, "parents must not be null");
 
-        if(parents.isEmpty())
+        if (parents.isEmpty())
             return;
         partyDao.addParents(child, parents);
         parents.forEach(parent -> dagEdgeDao.addEdges(parent.getId(), child.getId()));
@@ -301,7 +295,7 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         Preconditions.checkArgument(child != null, "child must not be null");
         Preconditions.checkArgument(parents != null, "parents must not be null");
 
-        if(parents.isEmpty())
+        if (parents.isEmpty())
             return;
         partyDao.removeParents(child, parents);
         parents.forEach(parent -> dagEdgeDao.removeEdges(parent.getId(), child.getId()));
@@ -314,7 +308,7 @@ public class PartyServiceImpl<T extends Party> implements PartyService<T> {
         QueryParams params = new QueryParams();
         params.addPredicate(new Predicate("type", Operator.EQ, type));
         params.addPredicate(new Predicate("identity", Operator.EQ, identity));
-        if(relations != null && !relations.isEmpty()) {
+        if (relations != null && !relations.isEmpty()) {
             params.setFetchRelations(Sets.newHashSet(relations));
         }
         List<Party> parties = find(params);

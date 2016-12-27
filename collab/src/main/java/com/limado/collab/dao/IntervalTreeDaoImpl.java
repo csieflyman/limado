@@ -1,7 +1,3 @@
-/*
- * Copyright © 2016. Limado Inc. All rights reserved
- */
-
 package com.limado.collab.dao;
 
 import com.google.common.base.Preconditions;
@@ -22,7 +18,7 @@ import java.util.stream.Collectors;
  * @author csieflyman
  */
 abstract class IntervalTreeDaoImpl<NodeType extends IntervalTreeNode<NodeIdType>, NodeIdType extends Serializable>
-        extends JpaGenericDaoImpl<NodeType, Long> implements IntervalTreeDao<NodeIdType>{
+        extends JpaGenericDaoImpl<NodeType, Long> implements IntervalTreeDao<NodeIdType> {
 
     private static final Logger log = LogManager.getLogger(IntervalTreeDaoImpl.class);
 
@@ -34,11 +30,11 @@ abstract class IntervalTreeDaoImpl<NodeType extends IntervalTreeNode<NodeIdType>
         Preconditions.checkArgument(childNodeId != null, "childNodeId must not be null");
 
         NodeType parentNode = getNode(parentNodeId);
-        if(parentNode == null) {
+        if (parentNode == null) {
             parentNode = create(newNode(parentNodeId));
         }
         NodeType childNode = getNode(childNodeId);
-        if(childNode == null) {
+        if (childNode == null) {
             childNode = create(newNode(childNodeId));
         }
         addChild(parentNode, childNode);
@@ -61,7 +57,7 @@ abstract class IntervalTreeDaoImpl<NodeType extends IntervalTreeNode<NodeIdType>
 
         NodeType childNode = getNode(childNodeId);
         NodeType currentParentNode = getParent(childNode);
-        if(currentParentNode != null) {
+        if (currentParentNode != null) {
             removeChild(currentParentNode, childNode, false);
             childNode = getNode(childNodeId);
         }
@@ -74,7 +70,7 @@ abstract class IntervalTreeDaoImpl<NodeType extends IntervalTreeNode<NodeIdType>
         Preconditions.checkArgument(nodeId != null, "nodeId must not be null");
 
         NodeType node = getNode(nodeId);
-        if(node == null)
+        if (node == null)
             return;
 
         delete(node);
@@ -85,13 +81,13 @@ abstract class IntervalTreeDaoImpl<NodeType extends IntervalTreeNode<NodeIdType>
         Preconditions.checkArgument(node != null, "node must not be null");
 
         NodeType parentNode = getParent(node);
-        if(parentNode != null) {
+        if (parentNode != null) {
             removeChild(parentNode, node, true);
             node = getNode(node.getNodeId());
         }
-        if(node != null && !isLeaf(node)) {
+        if (node != null && !isLeaf(node)) {
             List<NodeType> children = getChildren(node);
-            for(NodeType child: children) {
+            for (NodeType child : children) {
                 node = getNode(node.getNodeId());
                 child = getNode(child.getNodeId());
                 removeChild(node, child, true);
@@ -104,7 +100,7 @@ abstract class IntervalTreeDaoImpl<NodeType extends IntervalTreeNode<NodeIdType>
         Preconditions.checkArgument(nodeId != null, "nodeId must not be null");
 
         NodeType node = getNode(nodeId);
-        if(node == null) {
+        if (node == null) {
             return Collections.emptyList();
         }
         List<NodeType> subTreeNodes = getSubTree(node);
@@ -125,13 +121,12 @@ abstract class IntervalTreeDaoImpl<NodeType extends IntervalTreeNode<NodeIdType>
         Preconditions.checkArgument(parentNode != null, "parentNode must not be null");
         Preconditions.checkArgument(childNode != null, "childNode must not be null");
 
-        if(isDeleteLeafChild && isLeaf(childNode)) {
-            NodeType childRef = entityManager.getReference(clazz , childNode.getId());
+        if (isDeleteLeafChild && isLeaf(childNode)) {
+            NodeType childRef = entityManager.getReference(clazz, childNode.getId());
             super.delete(childRef);
             entityManager.flush();
             entityManager.detach(childNode);
-        }
-        else {
+        } else {
             updateChildTree(childNode, childNode.getTreeId(), childNode.getNodeId().toString(), false, childNode.getLow() - 1);
         }
 
@@ -140,7 +135,7 @@ abstract class IntervalTreeDaoImpl<NodeType extends IntervalTreeNode<NodeIdType>
         updateAncestorsOfParentTree(parentNode, false, 2 * childTreeSize);
 
         parentNode = getNode(parentNode.getNodeId());
-        if(isRootWithoutChild(parentNode)) {
+        if (isRootWithoutChild(parentNode)) {
             super.delete(parentNode);
             entityManager.flush();
             entityManager.detach(parentNode);
@@ -155,7 +150,7 @@ abstract class IntervalTreeDaoImpl<NodeType extends IntervalTreeNode<NodeIdType>
         List<NodeType> nodes = find(params);
         Set<Long> ids = nodes.stream().map(NodeType::getId).collect(Collectors.toSet());
         log.debug(ids);
-        if(ids.isEmpty())
+        if (ids.isEmpty())
             return;
 
         String operator = incrementOffset ? "+" : "-";
@@ -181,7 +176,7 @@ abstract class IntervalTreeDaoImpl<NodeType extends IntervalTreeNode<NodeIdType>
         List<NodeType> nodes = find(params);
         Set<Long> ids = nodes.stream().map(NodeType::getId).collect(Collectors.toSet());
         log.debug(ids);
-        if(ids.isEmpty())
+        if (ids.isEmpty())
             return;
 
         String operator = incrementOffset ? "+" : "-";
@@ -206,7 +201,7 @@ abstract class IntervalTreeDaoImpl<NodeType extends IntervalTreeNode<NodeIdType>
         List<NodeType> nodes = find(params);
         Set<Long> ids = nodes.stream().map(NodeType::getId).collect(Collectors.toSet());
         log.debug(ids);
-        if(ids.isEmpty())
+        if (ids.isEmpty())
             return;
 
         String operator = incrementOffset ? "+" : "-";
@@ -227,7 +222,7 @@ abstract class IntervalTreeDaoImpl<NodeType extends IntervalTreeNode<NodeIdType>
     private List<NodeType> getSubTree(NodeType node) {
         Preconditions.checkArgument(node != null, "node must not be null");
 
-        if(isLeaf(node))
+        if (isLeaf(node))
             return Collections.emptyList();
 
         QueryParams params = new QueryParams();
@@ -252,7 +247,7 @@ abstract class IntervalTreeDaoImpl<NodeType extends IntervalTreeNode<NodeIdType>
     private NodeType getParent(NodeType node) {
         Preconditions.checkArgument(node != null, "node must not be null");
 
-        if(isRoot(node))
+        if (isRoot(node))
             return null;
 
         QueryParams params = new QueryParams();
@@ -266,16 +261,16 @@ abstract class IntervalTreeDaoImpl<NodeType extends IntervalTreeNode<NodeIdType>
 
     private List<NodeType> getChildren(NodeType node) {
         List<NodeType> subTreeNodes = getSubTree(node);
-        if(subTreeNodes.isEmpty())
+        if (subTreeNodes.isEmpty())
             return Collections.emptyList();
 
         List<NodeType> children = new ArrayList<>();
-         do {
-             NodeType firstChild = subTreeNodes.get(0);
-             children.add(firstChild);
-             subTreeNodes.remove(firstChild);
-             subTreeNodes.removeAll(getSubTree(firstChild));
-        } while(!subTreeNodes.isEmpty());
+        do {
+            NodeType firstChild = subTreeNodes.get(0);
+            children.add(firstChild);
+            subTreeNodes.remove(firstChild);
+            subTreeNodes.removeAll(getSubTree(firstChild));
+        } while (!subTreeNodes.isEmpty());
         return children;
     }
 
