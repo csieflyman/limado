@@ -29,7 +29,8 @@ Group, Organization 與 User 組合為一個 **DAG (Directed Acyclic Graph)**
  1. 子樹節點: update interval_tree set low = low - (child.low - 1), high = high - (child.low - 1), treeId = child.id where low >= child.low and high <= child.high and and treeId = child.treeId
  2. 後續節點: update interval_tree set low = low - (2 * childTreeSize), high = high - (2 * childTreeSize) where low > child.high and treeId = parent.treeId
  3. 祖先節點: update interval_tree set high = high - (2 * childTreeSize) where low <= parent.low and high >= parent.high and treeId = parent.treeId
-![IntervalTree](https://dl.dropboxusercontent.com/u/12449489/IntervalTree.png)
+
+![IntervalTree](https://dl.dropboxusercontent.com/u/12449489/GitHub/IntervalTree.png)
 
 #### 取得 Group DAG 的祖先或子孫 (亦適用於 Organization Tree)
 參考 Kemal Erdogan 所發表的文章進行實作 [A Model to Represent Directed Acyclic Graphs (DAG) on SQL Databases](https://www.codeproject.com/articles/22824/a-model-to-represent-directed-acyclic-graphs-dag-o)
