@@ -67,7 +67,7 @@ subprojects {
         }
 
         dependencies {
-            fileTree(dir: rootProject.projectDir.absolutePath + "/db", include: '*.jar')
+            classpath fileTree(dir: rootProject.projectDir.absolutePath + "/db", include: '*.jar')
         }
 
         URLClassLoader loader = groovy.sql.Sql.class.classLoader
@@ -76,37 +76,10 @@ subprojects {
         }
     }
 
-    task createTables {
-        doLast {
-            if ("$has_dbTasks".toBoolean()) {
-                def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
-                executeSQL(sql, new File(project.projectDir.absolutePath + '/src/main/resources/sql/create.sql'))
-            }
-        }
-    }
-
     task dropTables {
         doLast {
             if ("$has_dbTasks".toBoolean()) {
                 def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
-                executeSQL(sql, new File(project.projectDir.absolutePath + '/src/main/resources/sql/drop.sql'))
-            }
-        }
-    }
-
-    task createTestTables {
-        doLast {
-            if ("$has_dbTasks".toBoolean()) {
-                def sql = Sql.newInstance("$test_db_url", "$test_db_user", "$test_db_password", "$test_db_driverClass")
-                executeSQL(sql, new File(project.projectDir.absolutePath + '/src/main/resources/sql/create.sql'))
-            }
-        }
-    }
-
-    task dropTestTables {
-        doLast {
-            if ("$has_dbTasks".toBoolean()) {
-                def sql = Sql.newInstance("$test_db_url", "$test_db_user", "$test_db_password", "$test_db_driverClass")
                 executeSQL(sql, new File(project.projectDir.absolutePath + '/src/main/resources/sql/drop.sql'))
             }
         }
@@ -124,8 +97,8 @@ subprojects {
                         userid: "$db_user",
                         password: "$db_password",
                         dbms: "mysql",
-                        dir: project.projectDir.absolutePath + '/src/main/resources/sql/patch',
-                        undooutputfile: project.projectDir.absolutePath + '/src/main/resources/sql/patch/undo_last_change.sql')
+                        dir: project.projectDir.absolutePath + '/src/main/resources/sql',
+                        undooutputfile: project.projectDir.absolutePath + '/src/main/resources/sql/undo_last_change.sql')
             }
         }
     }
@@ -134,7 +107,7 @@ subprojects {
         doLast {
             if ("$has_dbTasks".toBoolean()) {
                 def sql = Sql.newInstance("$db_url", "$db_user", "$db_password", "$db_driverClass")
-                executeSQL(sql, new File(project.projectDir.absolutePath + '/src/main/resources/sql/patch/undo_last_change.sql'))
+                executeSQL(sql, new File(project.projectDir.absolutePath + '/src/main/resources/sql/undo_last_change.sql'))
             }
         }
     }
@@ -221,7 +194,7 @@ task dropChangelogTable {
     }
 }
 
-task initDB(dependsOn: [createChangelogTable, rootProject.subprojects.createTables])
+task initDB(dependsOn: [createChangelogTable, rootProject.subprojects.updateDB])
 
 task cleanDB(dependsOn: [dropChangelogTable, rootProject.subprojects.dropTables])
 
