@@ -39,6 +39,7 @@ Group, Organization 與 User 組合為一個 **DAG (Directed Acyclic Graph)**
 
 ### 開發技術
 * **Back-End**
+  * Java 8
   * Spring Framework 4.3.2
   * Spring MVC 4.3.2 (REST API)
     * REST API 文件: Swagger
@@ -78,7 +79,7 @@ Group, Organization 與 User 組合為一個 **DAG (Directed Acyclic Graph)**
 * MariaDB 10.1
 * Jetty 9.3.11
 * Cacti ([http://122.116.114.22/cacti](http://122.116.114.22/cacti))
-* IBM ThinkPad R61 (2007年的老筆電)
+* IBM ThinkPad R61
 
 #### Continuous Delivery
 * 開發者執行測試、PMD、FindBugs 確認通過後，再 Push 至 GitHub
