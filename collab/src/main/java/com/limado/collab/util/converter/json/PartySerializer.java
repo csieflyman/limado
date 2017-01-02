@@ -21,16 +21,25 @@ class PartySerializer extends JsonSerializer<Party> {
 
     private static final Logger log = LogManager.getLogger(PartySerializer.class);
 
-    private static final ThreadLocal depthLocal = new ThreadLocal() {
+    private static final ThreadLocal parentDepthLocal = new ThreadLocal() {
+        @Override
+        protected Object initialValue() {
+            return 0;
+        }
+    };
+    private static final ThreadLocal childrenDepthLocal = new ThreadLocal() {
         @Override
         protected Object initialValue() {
             return 0;
         }
     };
 
+    private static final int MAX_DEPTH = 1;
+
     @Override
     public void serialize(Party party, JsonGenerator gen, SerializerProvider provider) throws IOException {
-        int depth = (int) depthLocal.get();
+        int parentDepth = (int) parentDepthLocal.get();
+        int childrenDepth = (int) childrenDepthLocal.get();
         gen.writeStartObject();
 
         if (party == null) {
@@ -53,34 +62,34 @@ class PartySerializer extends JsonSerializer<Party> {
 
                         if (name.equals(Party.RELATION_PARENT)) {
                             // we want serialize empty array instead of null
-                            if (value == null || (value.getClass() == PersistentSet.class && !((PersistentSet) value).wasInitialized())) {
+                            if (childrenDepth > 0 || value == null || (value.getClass() == PersistentSet.class && !((PersistentSet) value).wasInitialized())) {
                                 gen.writeStartArray();
                                 gen.writeEndArray();
                             } else {
-                                if (depth == 0) {
-                                    depth++;
-                                    depthLocal.set(depth);
+                                if (parentDepth < MAX_DEPTH) {
+                                    parentDepth++;
+                                    parentDepthLocal.set(parentDepth);
                                     JsonSerializer serializer = provider.findValueSerializer(value.getClass());
                                     serializer.serialize(value, gen, provider);
-                                    depth--;
-                                    depthLocal.set(depth);
+                                    parentDepth--;
+                                    parentDepthLocal.set(parentDepth);
                                 } else {
                                     gen.writeStartArray();
                                     gen.writeEndArray();
                                 }
                             }
                         } else if (name.equals(Party.RELATION_CHILDREN)) {
-                            if (value == null || (value.getClass() == PersistentSet.class && !((PersistentSet) value).wasInitialized())) {
+                            if (parentDepth > 0 || value == null || (value.getClass() == PersistentSet.class && !((PersistentSet) value).wasInitialized())) {
                                 gen.writeStartArray();
                                 gen.writeEndArray();
                             } else {
-                                if (depth == 0) {
-                                    depth++;
-                                    depthLocal.set(depth);
+                                if (childrenDepth < MAX_DEPTH) {
+                                    childrenDepth++;
+                                    childrenDepthLocal.set(childrenDepth);
                                     JsonSerializer serializer = provider.findValueSerializer(value.getClass());
                                     serializer.serialize(value, gen, provider);
-                                    depth--;
-                                    depthLocal.set(depth);
+                                    childrenDepth--;
+                                    childrenDepthLocal.set(childrenDepth);
                                 } else {
                                     gen.writeStartArray();
                                     gen.writeEndArray();
@@ -94,7 +103,8 @@ class PartySerializer extends JsonSerializer<Party> {
                             }
                         }
                     } catch (Throwable e) {
-                        depthLocal.remove();
+                        parentDepthLocal.remove();
+                        childrenDepthLocal.remove();
                         log.error("serialize" + party + " failure", e);
                         throw new ConversionException("serialize" + party + " failure", e);
                     }
@@ -104,9 +114,11 @@ class PartySerializer extends JsonSerializer<Party> {
         }
 
         gen.writeEndObject();
-
-        if (depth == 0) {
-            depthLocal.remove();
+        if (parentDepth == 0) {
+            parentDepthLocal.remove();
+        }
+        if (childrenDepth == 0) {
+            childrenDepthLocal.remove();
         }
     }
 
