@@ -33,7 +33,8 @@ Group, Organization 與 User 組合為一個 **DAG (Directed Acyclic Graph)**
 ![IntervalTree](https://dl.dropboxusercontent.com/u/12449489/GitHub/IntervalTree.png)
 
 #### 取得 Group DAG 的祖先或子孫 (亦適用於 Organization Tree)
-參考 Kemal Erdogan 所發表的文章進行實作 [A Model to Represent Directed Acyclic Graphs (DAG) on SQL Databases](https://www.codeproject.com/articles/22824/a-model-to-represent-directed-acyclic-graphs-dag-o)
+參考 Kemal Erdogan 所發表的文章進行實作 [A Model to Represent Directed Acyclic Graphs (DAG) on SQL Databases](https://www.codeproject.com/articles/22824/a-model-to-represent-directed-acyclic-graphs-dag-o)  
+概念上是建立 transitive closure，空間換時間的作法
 
 ----------
 
