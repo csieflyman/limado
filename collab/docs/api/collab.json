@@ -609,7 +609,7 @@
                 "description": "Get descendants of specified organization",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "organizationId",
                         "in": "path",
                         "description": "organization id",
                         "required": true,
