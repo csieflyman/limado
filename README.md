@@ -70,24 +70,3 @@ Group, Organization 與 User 組合為一個 **DAG (Directed Acyclic Graph)**
 #### Swagger REST API 文件 (optional)  
 * 必須先安裝 [Swagger UI](https://github.com/swagger-api/swagger-ui) 才能瀏覽文件
 * 執行 gradle deployDoc task
-
-----------
-
-### Demo 環境 
-[http://122.116.114.22/collab/party.html](http://122.116.114.22/collab/party.html)
-#### 軟硬體
-* CentOS 7.2 v1511 minimal
-* MariaDB 10.1
-* Jetty 9.3.11
-* Cacti ([http://122.116.114.22/cacti](http://122.116.114.22/cacti))
-* IBM ThinkPad R61
-
-#### Continuous Delivery
-* 開發者執行測試、PMD、FindBugs 確認通過後，再 Push 至 GitHub
-* GitHub 觸發 Jenkins 建置
-* Jenkins ([http://122.116.114.22/jenkins](http://122.116.114.22/jenkins))
-  * 執行測試，產生 JUnit, JaCoCo (code coverage), PMD, FindBugs 報表
-  * 上傳 War 檔至 Nexus Repository ([http://122.116.114.22/nexus](http://122.116.114.22/nexus))
-  * GitHub tag snapshot
-  * 自動部署程式至 Demo 環境
-    * 如果有資料庫綱要有異動，則 DBDeploy 會自動執行 sql script
